@@ -1,0 +1,1275 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Fracture: own the rig, rent the rig, extract the fees</title>
+<meta name="description" content="Fracture is a Solana launchpad of autonomous oil rig NFTs that launch coins on pump.fun. Own a rig, rent one out, or rent someone else’s.">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/logo.png">
+<meta name="theme-color" content="#2E2E2E">
+<meta property="og:title" content="Fracture: own the rig, rent the rig, extract the fees">
+<meta property="og:description" content="A Solana launchpad of autonomous oil rig NFTs that launch coins on pump.fun. Own a rig, rent one out, or rent someone else’s.">
+<meta property="og:image" content="/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@500;700;800;900&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@solana/web3.js@1.95.3/lib/index.iife.min.js"></script>
+<style>
+:root{
+  --bg:#E8E8E6;--panel:#F4F4F2;--ink:#1E1E1F;--soft:#47474A;--mute:#77777B;--rule:#D2D2CF;--steel:#5F5F64;--edge:#2E2E2E;--frame:#2E2E2E;
+  --lime:#2ED52A;--lime-ink:#178A13;--sea:#D6DCDB;--r1:#CDCDC9;--r2:#B6B6B1;--r3:#939390;--grid:rgba(0,0,0,.04);--stripe:rgba(0,0,0,.035);
+  --f-head:'Big Shoulders Display','Arial Narrow',Impact,sans-serif;
+  --f-ui:'IBM Plex Sans',ui-sans-serif,system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  --f-mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  color-scheme:light;box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#2E2E2E;--panel:#363637;--ink:#F0F0F1;--soft:#CACACD;--mute:#9C9C9F;--rule:#48484A;--steel:#CACACD;--edge:#CACACD;--frame:#505053;
+    --lime:#43F23A;--lime-ink:#5AF552;--sea:#2A3231;--r1:#404042;--r2:#363638;--r3:#2B2B2D;--grid:rgba(255,255,255,.03);--stripe:rgba(255,255,255,.035);color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#2E2E2E;--panel:#363637;--ink:#F0F0F1;--soft:#CACACD;--mute:#9C9C9F;--rule:#48484A;--steel:#CACACD;--edge:#CACACD;--frame:#505053;
+  --lime:#43F23A;--lime-ink:#5AF552;--sea:#2A3231;--r1:#404042;--r2:#363638;--r3:#2B2B2D;--grid:rgba(255,255,255,.03);--stripe:rgba(255,255,255,.035);color-scheme:dark;
+}
+*,*::before,*::after{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background-color:var(--bg);color:var(--ink);font:400 15px/1.55 var(--f-ui);
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:26px 26px;-webkit-font-smoothing:antialiased}
+img,svg{max-width:100%}
+a{color:inherit}
+button{font:inherit;color:inherit}
+:focus-visible{outline:2px dashed var(--lime-ink);outline-offset:3px}
+.wrap{max-width:1400px;margin:0 auto;padding:16px}
+.panel{background:var(--panel);border:1.5px solid var(--frame)}
+.ph{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:0;padding:13px 18px;border-bottom:1px solid var(--rule);font:600 12px/1.2 var(--f-mono);letter-spacing:.07em;text-transform:uppercase}
+.ph small{font-weight:400;color:var(--mute);letter-spacing:.04em}
+.ph .pix,.ph .mini{height:18px;width:auto}
+.ph .end{margin-left:auto}
+.pad{padding:18px}
+.tag{display:inline-block;font:600 11px/1 var(--f-mono);letter-spacing:.05em;padding:5px 7px;background:var(--ink);color:var(--bg);text-transform:uppercase}
+.tag.lime{background:var(--lime);color:#000}
+.tag.ghost{background:transparent;color:var(--soft);border:1px solid var(--rule)}
+.pix rect{fill:var(--steel)} .pix .g{fill:var(--lime)}
+.st{fill:var(--steel)} .lime{fill:var(--lime)} .idle{fill:var(--mute)} .sea{fill:var(--sea)} .r1{fill:var(--r1)} .r2{fill:var(--r2)} .r3{fill:var(--r3)} .m{fill:var(--mute)} .g{fill:var(--lime)} .inkf{fill:var(--ink)}
+.small{font-size:13px;color:var(--soft)}
+.warn{color:#B42318}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .warn{color:#FF8A7A}}
+:root[data-theme="dark"] .warn{color:#FF8A7A}
+
+/* header */
+.top{margin-bottom:16px}
+.nav{display:grid;grid-template-columns:auto 1fr auto}
+.brand{display:flex;align-items:center;gap:12px;padding:10px 20px;border-right:1px solid var(--rule);text-decoration:none}
+.brand .mini{height:52px;width:48px;flex:none}
+.brand b{display:block;font:900 32px/.9 var(--f-head);letter-spacing:.02em;text-transform:uppercase}
+.brand small{display:block;margin-top:5px;font:500 11px/1 var(--f-mono);color:var(--mute);letter-spacing:.05em}
+.tabs{display:grid;grid-template-columns:repeat(7,minmax(96px,1fr));overflow-x:auto;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tabs a{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:15px 8px 12px;border-right:1px solid var(--rule);text-decoration:none;color:var(--soft);font:500 11px/1 var(--f-mono);letter-spacing:.06em;text-transform:uppercase;white-space:nowrap}
+.tabs a em{position:absolute;top:7px;right:8px;font-style:normal;color:var(--mute);font-size:10px}
+.tabs a .pix,.tabs a .mini{height:24px;width:auto}
+.tabs a:hover{background:var(--stripe)}
+.tabs a[aria-current="page"]{color:var(--ink);box-shadow:inset 0 -4px 0 var(--lime)}
+.walletcell{position:relative;display:flex;align-items:center;padding:12px 18px}
+
+/* buttons */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:9px;font:700 14px/1 var(--f-ui);letter-spacing:.01em;border:1.5px solid var(--edge);background:var(--panel);color:var(--ink);padding:12px 16px;cursor:pointer;box-shadow:3px 3px 0 var(--edge);text-decoration:none;white-space:nowrap}
+.btn:active:not([disabled]){transform:translate(2px,2px);box-shadow:1px 1px 0 var(--edge)}
+.btn.lime{background:var(--lime);color:#000;border-color:#000}
+.btn.dark{background:var(--ink);color:var(--bg)}
+.btn.sm{padding:8px 11px;font-size:12.5px;box-shadow:2px 2px 0 var(--edge)}
+.btn.wide{width:100%;padding:19px;font-size:16px}
+.btn[disabled]{opacity:.4;cursor:not-allowed;box-shadow:none}
+.btn .dot{width:9px;height:9px;background:#000;display:inline-block}
+.btn.connected .dot{background:var(--lime);outline:1.5px solid var(--edge)}
+.chip{font:600 11px/1 var(--f-mono);letter-spacing:.03em;border:1.5px solid var(--edge);background:var(--panel);padding:7px 10px;cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--lime);color:#000;border-color:#000}
+.link{font:700 13px/1 var(--f-ui);border:0;background:none;padding:3px 0;border-bottom:3px solid var(--lime);cursor:pointer;text-decoration:none}
+
+/* field */
+.grid-hero{display:grid;grid-template-columns:minmax(300px,400px) 1fr;gap:16px;align-items:start}
+.col{display:grid;gap:16px;align-content:start}
+.big{display:flex;align-items:baseline;gap:10px;margin:14px 0 6px}
+.big b{font:800 116px/.85 var(--f-head)}
+.big span{font:600 36px var(--f-head);color:var(--mute)}
+.ticks{display:flex;gap:2px;height:16px;margin:6px 0 18px}
+.ticks i{flex:1;background:var(--rule)} .ticks i.on{background:var(--steel)} .ticks i.last{background:var(--lime)}
+.kv4{display:grid;grid-template-columns:1fr 1fr;border:1px solid var(--rule);margin-bottom:18px}
+.kv4>div{padding:12px 14px;border-right:1px solid var(--rule);border-bottom:1px solid var(--rule)}
+.kv4>div:nth-child(2n){border-right:0}
+.kv4>div:nth-last-child(-n+2){border-bottom:0}
+label,.lbl{display:block;font:500 11px/1.2 var(--f-mono);color:var(--soft);letter-spacing:.05em;text-transform:uppercase;margin-bottom:5px}
+.kv4 b{font:500 17px/1.2 var(--f-mono)}
+.hero-copy{padding:26px 28px 4px}
+h1{font:900 clamp(40px,5.6vw,78px)/.88 var(--f-head);text-transform:uppercase;letter-spacing:.005em;margin:0 0 14px}
+h1 em{font-style:normal;color:var(--lime-ink)}
+.hero-copy p{font-size:17px;max-width:60ch;color:var(--soft);margin:0}
+.xsec{padding:12px 18px 0}
+.xs{display:block;width:100%;height:auto}
+.xs .lab rect{fill:var(--panel);stroke:var(--steel);stroke-width:.35}
+.xs .lab text{font:600 3.8px var(--f-mono);fill:var(--ink)}
+.xs .lab text.sub{font-weight:400;font-size:3.1px;fill:var(--soft)}
+.xs .drill{stroke:var(--lime-ink);stroke-width:.8;stroke-dasharray:1.2 1.8;animation:bore 1.4s linear infinite}
+.xs .well{stroke:var(--lime-ink);stroke-width:.35;opacity:.7}
+@keyframes bore{to{stroke-dashoffset:-6}}
+.xs .pk{cursor:help}
+.xs .pk.live{fill:var(--lime)} .xs .pk.dead{fill:var(--mute);opacity:.6} .xs .pk.grad{fill:var(--lime);stroke:var(--ink);stroke-width:.6}
+.legend{display:flex;flex-wrap:wrap;gap:8px 22px;padding:14px 20px 18px;font:500 12.5px var(--f-mono);color:var(--soft)}
+.legend span{display:inline-flex;align-items:center;gap:7px}
+.legend i{width:11px;height:11px;display:inline-block;border:1px solid var(--edge)}
+.kv2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+.kv2>div{padding:14px 18px}
+.kv2>div+div{border-left:1px solid var(--rule)}
+.kv2 b{font:800 25px/1.1 var(--f-head);text-transform:uppercase;overflow-wrap:anywhere}
+.btnrow{display:flex;gap:12px;padding:18px;border-top:1px solid var(--rule)}
+.btnrow .btn{flex:1}
+.feed{display:grid;grid-template-columns:repeat(6,1fr)}
+.feed>div{padding:18px 14px;text-align:center;border-right:1px solid var(--rule)}
+.feed>div:last-child{border-right:0}
+.feed .rig{width:92px;height:auto;margin:0 auto 8px;display:block}
+.feed b{display:block;font:800 20px var(--f-head)}
+.feed p{margin:2px 0 6px;font-size:13px;color:var(--soft);line-height:1.35}
+.ago{font:500 11px var(--f-mono);color:var(--mute);letter-spacing:.04em;text-transform:uppercase}
+.empty{padding:28px 20px;color:var(--soft);display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+.empty .mini{height:64px;width:auto}
+.steps{display:grid;grid-template-columns:repeat(5,1fr)}
+.steps>div{padding:20px 18px 24px;border-right:1px solid var(--rule)}
+.steps>div:last-child{border-right:0}
+.steps .pix,.steps .mini{height:40px;width:auto;margin-bottom:14px}
+.steps .n{display:block;font:500 12px var(--f-mono);color:var(--lime-ink);margin-bottom:6px}
+.steps h3{margin:0 0 6px;font:800 24px/1.05 var(--f-head);text-transform:uppercase}
+.steps p{margin:0;color:var(--soft);font-size:14.5px}
+.mt{margin-top:16px}
+
+/* mint */
+.grid-2{display:grid;grid-template-columns:1fr 400px;gap:16px;align-items:start}
+.step h3{font:800 30px/1 var(--f-head);text-transform:uppercase;margin:0 0 8px}
+.step p{margin:0 0 16px;color:var(--soft);max-width:68ch}
+.opts{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.opt{text-align:left;border:1.5px solid var(--edge);background:var(--panel);padding:16px;cursor:pointer;display:flex;flex-direction:column;gap:4px}
+.opt[aria-pressed="true"]{box-shadow:inset 0 0 0 3px var(--lime),4px 4px 0 var(--edge)}
+.opt b{font:800 22px/1 var(--f-head);text-transform:uppercase;margin-top:8px}
+.opt>span{color:var(--soft);font-size:14px}
+.opt dl{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;margin:12px 0 0;font:500 12px var(--f-mono)}
+.opt dt{color:var(--mute)} .opt dd{margin:0;text-align:right}
+.dg{width:22px;height:22px} .dg .on{fill:var(--steel)} .dg .off{fill:none;stroke:var(--mute);stroke-width:.5}
+.note{font-size:13.5px;color:var(--soft);margin:14px 0 0;padding-left:12px;border-left:3px solid var(--lime)}
+.youget{display:flex;gap:18px;align-items:center;padding:18px}
+.youget .frame{border:1px solid var(--rule);padding:8px;width:124px;flex:none}
+.youget .rig{width:100%;height:auto;display:block}
+.youget b{display:block;font:900 44px/1 var(--f-head)}
+.youget span{color:var(--soft);font-size:14px}
+.rows>div{display:flex;justify-content:space-between;gap:16px;align-items:baseline;padding:14px 18px;border-bottom:1px solid var(--rule)}
+.rows>div:last-child{border-bottom:0}
+.rows label{margin:0}
+.rows b{font:500 15px var(--f-mono);text-align:right}
+
+/* market + fleet */
+.filters{display:flex;flex-wrap:wrap;gap:10px 22px;align-items:center;padding:16px 18px}
+.seg{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.seg>span{font:500 11px var(--f-mono);color:var(--mute);letter-spacing:.05em;text-transform:uppercase;margin-right:4px}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}
+.card{border:0;border-right:1px solid var(--rule);border-bottom:1px solid var(--rule);background:none;padding:16px 10px 14px;cursor:pointer;text-align:center}
+.card:hover{background:var(--stripe)}
+.card .rig{width:96px;height:auto;display:block;margin:0 auto 8px}
+.card b{display:block;font:800 21px var(--f-head)}
+.card .meta{font-size:12.5px;color:var(--soft)}
+.you{display:inline-block;margin-left:5px;vertical-align:3px}
+.more{padding:16px;text-align:center}
+.lists{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr))}
+.lcard{display:grid;grid-template-columns:96px 1fr;gap:14px;padding:16px;border-right:1px solid var(--rule);border-bottom:1px solid var(--rule)}
+.lcard .rig{width:96px;height:auto;display:block}
+.lcard h4{margin:0 0 6px;font:800 24px/1 var(--f-head);display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.lcard dl{display:grid;grid-template-columns:auto 1fr;gap:3px 10px;margin:0 0 12px;font:500 11.5px var(--f-mono)}
+.lcard>div{min-width:0}
+.lcard dt{color:var(--mute)} .lcard dd{margin:0;text-align:right}
+.lcard .btn{width:100%}
+.aucs{display:grid;grid-template-columns:repeat(3,1fr)}
+.auc{padding:18px;border-right:1px solid var(--rule)}
+.auc:last-child{border-right:0}
+.auc .top2{display:flex;gap:14px;align-items:center;margin-bottom:12px}
+.auc .rig{width:88px;height:auto}
+.auc h4{margin:0;font:800 26px/1 var(--f-head)}
+.bid{font:800 40px/1 var(--f-head);margin:2px 0 4px}
+.bid small{font:500 13px var(--f-mono);color:var(--soft)}
+
+/* rigs */
+.kv5{display:grid;grid-template-columns:repeat(5,1fr)}
+.kv5>div{padding:16px 18px;border-right:1px solid var(--rule)}
+.kv5>div:last-child{border-right:0}
+.kv5 b{display:block;font:500 21px/1.2 var(--f-mono)}
+.kv5 b.g{color:var(--lime-ink)}
+.actions{display:flex;flex-wrap:wrap;gap:12px;padding:18px;border-top:1px solid var(--rule)}
+.rigrow{display:grid;grid-template-columns:150px 1fr 1.15fr;border-top:1px solid var(--rule)}
+.rigrow:first-of-type{border-top:0}
+.rigrow>div{padding:18px}
+.rigrow>div+div{border-left:1px solid var(--rule)}
+.rigrow .rig{width:100%;height:auto;display:block}
+.rigrow h3{margin:0 0 8px;font:900 34px/1 var(--f-head);display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:10px 18px;margin:10px 0 14px}
+.stats b{display:block;font:500 15px var(--f-mono)}
+.btns{display:flex;flex-wrap:wrap;gap:10px}
+.up{display:grid;grid-template-columns:1fr auto;gap:4px 12px;align-items:center;padding:10px 0;border-bottom:1px dashed var(--rule)}
+.up:last-child{border-bottom:0}
+.up b{font:700 14.5px var(--f-ui)}
+.up small{grid-column:1;font-size:12.5px;color:var(--soft)}
+.up .btn{grid-row:1 / span 2;grid-column:2}
+.pips{display:inline-flex;gap:3px;margin-left:8px;vertical-align:1px}
+.pips i{width:9px;height:9px;border:1px solid var(--edge);display:inline-block}
+.pips i.on{background:var(--lime)}
+.rentbox{border:1px solid var(--rule);padding:12px 14px;margin-bottom:12px;background:var(--stripe)}
+.rentbox b{display:block;font:700 14.5px var(--f-ui);margin-bottom:2px}
+.rentbox p{margin:0 0 10px;font-size:13px;color:var(--soft)}
+.queue>div{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;padding:14px 18px;border-top:1px solid var(--rule)}
+.queue>div:first-child{border-top:0}
+.queue b{font:800 20px var(--f-head)}
+.queue p{margin:2px 0 0;color:var(--soft);font-size:13.5px}
+
+/* how */
+.split{padding:22px 22px 6px}
+.squares{display:grid;grid-template-columns:repeat(50,1fr);gap:2px}
+.squares i{aspect-ratio:1;display:block}
+.sq-a{background:var(--lime)} .sq-b{background:var(--steel)} .sq-c{background:var(--mute);opacity:.45}
+.splitkeys{display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid var(--rule);margin-top:18px}
+.splitkeys>div{padding:16px 22px;border-right:1px solid var(--rule)}
+.splitkeys>div:last-child{border-right:0}
+.splitkeys .k{display:flex;gap:8px;align-items:center;font:700 15px var(--f-ui)}
+.splitkeys .k i{width:13px;height:13px;display:inline-block}
+.splitkeys b{display:block;font:800 60px/1 var(--f-head);margin:8px 0 4px}
+.splitkeys p{margin:0;color:var(--soft);font-size:14px}
+.fly{padding:10px 18px 18px}
+.fly svg{display:block;width:100%;height:auto;max-width:900px;margin:0 auto}
+.fly .ring{fill:none;stroke:var(--steel);stroke-width:1.5;stroke-dasharray:5 5}
+.fly .node rect{fill:var(--panel);stroke:var(--edge);stroke-width:1.5}
+.fly .node.hot rect{fill:var(--lime);stroke:#000}
+.fly .node text{font:600 13px var(--f-ui);fill:var(--ink)}
+.fly .node.hot text{fill:#000}
+.fly .arr{fill:var(--steel)}
+.fly ol{display:none;margin:0;padding:0 0 0 22px}
+.fly ol li{padding:6px 0;font-weight:600}
+.tank{display:grid;grid-template-columns:120px 1fr;gap:22px;align-items:center;padding:20px 22px}
+.tank svg{width:100%;height:auto}
+.tank p{margin:0 0 10px;color:var(--soft)}
+table{width:100%;border-collapse:collapse;font-size:14.5px}
+th{font:500 11px var(--f-mono);letter-spacing:.05em;text-transform:uppercase;color:var(--soft);text-align:left;padding:10px 14px;border-bottom:1px solid var(--rule);background:var(--stripe)}
+td{padding:12px 14px;border-bottom:1px solid var(--rule);vertical-align:top}
+tr:last-child td{border-bottom:0}
+td.r,th.r{text-align:right;font-family:var(--f-mono)}
+.tw{overflow-x:auto}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start}
+
+/* docs */
+.docs{display:grid;grid-template-columns:250px 1fr;gap:16px;align-items:start}
+.toc{position:sticky;top:calc(env(safe-area-inset-top,0px) + 12px)}
+.toc ol{list-style:none;margin:0;padding:8px 18px 14px}
+.toc li button{display:flex;gap:14px;width:100%;text-align:left;background:none;border:0;border-bottom:1px solid var(--rule);padding:10px 0;cursor:pointer;font-size:14.5px}
+.toc li button span{font:500 11px var(--f-mono);color:var(--mute);padding-top:3px}
+.doc{scroll-margin-top:16px}
+.doc .body{padding:20px 24px 24px;max-width:80ch}
+.doc .body p,.doc .body li{color:var(--soft)}
+.doc .body strong{color:var(--ink)}
+.doc .body h4{font:800 22px var(--f-head);text-transform:uppercase;margin:20px 0 6px}
+.doc code{font:500 12.5px var(--f-mono);background:var(--stripe);padding:2px 5px}
+.doc .tw{margin:12px 0;border:1px solid var(--rule)}
+details{border-bottom:1px solid var(--rule)}
+details summary{cursor:pointer;padding:13px 0;font-weight:700;list-style:none}
+details summary::before{content:"▸";display:inline-block;width:18px;font-size:12px}
+details[open] summary::before{content:"▾"}
+details p{margin:0 0 14px 18px}
+
+/* overlays */
+.scrim{position:fixed;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;padding:16px;z-index:50}
+.modal{max-width:640px;width:100%;max-height:calc(100% - 32px);overflow:auto;box-shadow:6px 6px 0 var(--lime)}
+.modal.wide{max-width:880px}
+.x{margin-left:auto;background:none;border:0;font:700 18px var(--f-mono);cursor:pointer;padding:0 4px}
+.wlist{display:grid;gap:10px;padding:18px}
+.wopt{display:flex;align-items:center;gap:14px;border:1.5px solid var(--edge);background:var(--panel);padding:12px 14px;cursor:pointer;text-align:left;font:700 15px var(--f-ui);text-decoration:none}
+.wopt img,.wopt .ph-ico{width:28px;height:28px;flex:none}
+.wopt .ph-ico{background:var(--steel)}
+.wopt em{margin-left:auto;font:500 11px var(--f-mono);font-style:normal;color:var(--lime-ink);text-transform:uppercase;letter-spacing:.05em}
+.wopt:hover{background:var(--stripe)}
+.menu{position:absolute;right:18px;top:calc(100% - 4px);z-index:40;min-width:260px;box-shadow:4px 4px 0 var(--edge)}
+.menu .rows>div{padding:12px 16px}
+.mitems{display:grid;border-top:1px solid var(--rule)}
+.mitems button,.mitems a{text-align:left;background:none;border:0;border-bottom:1px solid var(--rule);padding:12px 16px;cursor:pointer;font:600 14px var(--f-ui);text-decoration:none}
+.mitems>*:last-child{border-bottom:0}
+.toasts{position:fixed;right:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));display:grid;gap:8px;z-index:60;max-width:min(380px,calc(100% - 32px))}
+.toast{background:var(--ink);color:var(--bg);padding:12px 16px;font:500 14px var(--f-ui);box-shadow:4px 4px 0 var(--lime)}
+footer{display:flex;flex-wrap:wrap;gap:8px 20px;justify-content:space-between;padding:22px 2px 36px;font-size:13px;color:var(--soft)}
+
+@media (max-width:1150px){
+  .grid-hero{grid-template-columns:minmax(0,1fr)}
+  .grid-hero .hero{order:-1}
+  .grid-2{grid-template-columns:1fr}
+  .feed{grid-template-columns:repeat(3,1fr)}
+  .feed>div:nth-child(3n){border-right:0}
+  .feed>div:nth-child(-n+3){border-bottom:1px solid var(--rule)}
+  .steps{grid-template-columns:1fr 1fr}
+  .steps>div{border-bottom:1px solid var(--rule)}
+  .rigrow{grid-template-columns:130px 1fr}
+  .rigrow>div:last-child{grid-column:1 / -1;border-left:0;border-top:1px solid var(--rule)}
+  .docs{grid-template-columns:1fr}
+  .toc{position:static}
+  .aucs{grid-template-columns:1fr}
+  .auc{border-right:0;border-bottom:1px solid var(--rule)}
+  .kv5{grid-template-columns:repeat(3,1fr)}
+  .kv5>div:nth-child(3){border-right:0}
+  .kv5>div:nth-child(-n+3){border-bottom:1px solid var(--rule)}
+}
+@media (max-width:1040px){
+  .nav{grid-template-columns:1fr auto}
+  .brand{border-right:0}
+  .tabs{grid-column:1 / -1;grid-row:2;display:flex;border-top:1px solid var(--rule)}
+  .tabs a{flex:1 0 96px}
+}
+@media (max-width:700px){
+  .wrap{padding:10px}
+  .xs .lab{display:none}
+  .opts,.two{grid-template-columns:1fr}
+  .feed{grid-template-columns:1fr 1fr}
+  .feed>div{border-bottom:1px solid var(--rule)}
+  .feed>div:nth-child(2n){border-right:0}
+  .feed>div:nth-child(3n){border-right:1px solid var(--rule)}
+  .feed>div:nth-child(6n){border-right:0}
+  .steps{grid-template-columns:1fr}
+  .steps>div{border-right:0}
+  .kv5{grid-template-columns:1fr 1fr}
+  .kv5>div{border-right:1px solid var(--rule)!important;border-bottom:1px solid var(--rule)}
+  .kv5>div:nth-child(2n){border-right:0!important}
+  .splitkeys{grid-template-columns:1fr}
+  .splitkeys>div{border-right:0;border-bottom:1px solid var(--rule)}
+  .squares{grid-template-columns:repeat(25,1fr)}
+  .fly svg{display:none} .fly ol{display:block}
+  .big b{font-size:92px}
+  .kv2 b{font-size:23px}
+  .brand .mini{height:40px;width:37px}
+  .brand{padding:10px 12px;gap:8px}
+  .brand b{font-size:22px}
+  .walletcell{padding:10px 12px}
+  .walletcell .btn{padding:9px 10px;font-size:12.5px;gap:7px}
+  .rigrow{grid-template-columns:1fr}
+  .rigrow>div+div{border-left:0;border-top:1px solid var(--rule)}
+  .rigrow .rig{max-width:160px}
+  .tank{grid-template-columns:80px 1fr}
+}
+@media (prefers-reduced-motion:reduce){
+  .xs .drill{animation:none}
+  .btn:active:not([disabled]){transform:none}
+}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs id="sprites"></defs></svg>
+
+<div class="wrap">
+  <header class="top panel">
+    <div class="nav">
+      <a class="brand" href="#field" aria-label="Fracture home">
+        <svg class="mini" viewBox="0 0 61 66" shape-rendering="crispEdges" aria-hidden="true"><use href="#rigS" class="st"/><use href="#rigG" class="lime"/></svg>
+        <span><b>Fracture</b><small>$FRACTURE</small></span>
+      </a>
+      <nav class="tabs" id="tabs" aria-label="Sections"></nav>
+      <div class="walletcell">
+        <button class="btn lime" id="walletBtn" data-act="wallet" aria-haspopup="true"><i class="dot"></i><span>Connect wallet</span></button>
+        <div class="menu panel" id="walletMenu" hidden></div>
+      </div>
+    </div>
+  </header>
+
+  <main id="view" tabindex="-1"></main>
+
+  <footer>
+    <span>Fracture. Own the rig. Rent the rig. Extract the fees.</span>
+    <span>Rigs, rentals, $FRACTURE and every coin launched here can go to zero. Nothing here is financial advice.</span>
+  </footer>
+</div>
+
+<div id="overlay"></div>
+<div class="toasts" id="toasts" aria-live="polite"></div>
+
+<script>
+"use strict";
+/* ---------- logo pixel grid ---------- */
+const RIG = [".............................ggg.............................", ".............................ggg.............................", "............................sssss............................", "............................sssss............................", "............................s.s.s............................", "............................s.s.s............................", "...........................ss.s.ss...........................", "..........................sss.s.ss...........................", ".............................................................", ".............................................................", "..........................gggggggg...........................", "..........................gggggggg...........................", "..........................ss.....ss..........................", "..........................sss...sss..........................", "..........................s.s..s..s..........................", ".........................ss..sss..s..........................", ".........................ss..ss...s..........................", ".........................s..ss.ss.s..........................", ".........................s.ss...sss..........................", ".........................sss.....ss..........................", ".........................ss.......ss.........................", "........................ssss.....sss.........................", "........................ss..ss.ss.ss.........................", "........................ss...sss..ss.........................", "........................s...ss.s...s.........................", "............sss.........s..ss...ss.s....................ssss.", ".......................ssss...s..ssss................sssssss.", ".......................sss....s....ss...............sssssss..", "............ggg....s...sss....s....ss..............sssss..s..", "............gg.....s...ssss...s..ssss.............sssss...s..", ".................s.s...s...s..s.ss..s...........ss..ss....s..", ".................s.s...s....s.s.s...ss..........s...ss....s..", "............sss..s.s..ss...ss.s.ss..ss........ss...ss.....s..", "............ggg..s.s..ss...s..s..s..ss......sss...ss......s..", "........sss........s..ss.ss...s...ss.s.....sss...ss.......s..", ".......ssss...........ssss....s...ssss....ssss..ss.......s.s.", ".......ssssssssssssss.sss.....s....sss....s..s.ss.......gggg.", ".......ss...........s.........s......ssss.s..sss........gggg.", ".......ss.gg..g..g..ssssss....s...sssssss...............gggg.", ".......ss.gg.gg..g..ssssss....s...ssss..s...............gggg.", ".......ss...........ssssss....s...ssss..s.ssssssss...........", "....ssssssssssssssssssssss....s...ssss..s.ssssssss...........", ".............................................................", "....ggggggggggggggggggggggggggggggggggggggggggggggggggg......", "....ggggggggggggggggggggggggggggggggggggggggggggggggggg......", ".......sssssssssssssss...sssssssss....sssssssssssssss........", ".......sssssssssssssss...ssssssssss...sssssssssssssss........", "..........ssss....ssss.sssssssssssss..sss.....sss............", "...........sss....sss.................ssss...ssss............", "...........ssss..ssss.................ss.ss.ss.ss............", "...........ss.ssss..s.................ss..sss..ss............", "...........ss..ss...s.................ss...ss..ss............", "...........ss..ss...s.................ss..sss..ss............", "...........ss.sssss.s.................ss.ss.ss.ss............", "...........ssss..ssss.................ssss...ssss............", "...........sss......s.................ss......sss............", "...ss......ss...ssss.........ss.........ssss...ss.....sss....", ".sssss.........sssss........ssss........ssss..........sssss..", "sss..sss....ssss....ss....sss..sss...sss....ssss....ss...ss..", "......ssssssss.......sssssss....sssssss.......sssssss........", "........ssss....ggg....sss........sss....ggg....sss..........", "...sss.........ggggg........ssss........ggggg.........sss....", "......ss....ggg....ggg....sss..sss...ggg....gggg...sss.......", "........ssggg........gggsss......sssgg.........ggsss.........", "........ssgg..........ggss........ssgg..........gss..........", "............................................................."];
+
+/* ---------- config ---------- */
+const DAY = 86400;
+const CFG = {
+  RPC: 'https://api.mainnet-beta.solana.com', // swap for your own RPC (Helius, Triton…) when you deploy
+  X: 'https://x.com/FractureRent',
+  SUPPLY: 777, MINT0: 0.25, MINT1: 1.5,
+  OPER: 0.60, BURN: 0.25, OPS: 0.15,
+  RENT_OWNER: 0.90, RENT_BURN: 0.10,
+  RES_MAX: 24, BARREL: 1000,
+  PRICE0: 0.0000015, TOKEN_SUPPLY: 1e9,
+  START_T: 2 * DAY + 9 * 3600,
+  OTHER_RATE: 16 / 1440
+};
+const FIELDS = [
+  { key: 'shelf', name: 'Shelf', unlock: 0, rate: 1/150, mu: Math.log(0.08), sd: 1.0, finds: 'Trending narratives', blurb: 'Shallow water. Drills what’s already moving: trending posts, busy pump.fun pages, memes spreading fast.', freq: 'High', spread: 'Narrow' },
+  { key: 'deep', name: 'Deepwater', unlock: 25000, rate: 1/300, mu: Math.log(0.10), sd: 1.5, finds: 'Emerging narratives', blurb: 'Further out. Looks for ideas gaining ground in small communities before they go mainstream.', freq: 'Medium', spread: 'Wide' },
+  { key: 'frontier', name: 'Frontier', unlock: 90000, rate: 1/600, mu: Math.log(0.07), sd: 2.1, finds: 'Obscure on-chain signals', blurb: 'Unmapped ground. Reads strange on-chain behaviour and drills experimental coins from it.', freq: 'Low', spread: 'Extreme' }
+];
+const UP = {
+  cap:  { name: 'Drilling capacity', max: 3, cost: l => 20000 * l, eff: () => '+1 well live at once' },
+  freq: { name: 'Launch frequency', max: 5, cost: l => 5000 * l, eff: () => '+25% strike rate per level' },
+  auto: { name: 'Automation', max: 3, cost: l => 15000 * l, eff: l => ['Drills on its own', 'Refills its own reserves', 'Also sends owner fees to your wallet'][Math.min(l, 2)] }
+};
+const DURS = [{ h: 1, name: '1 hour', off: 0 }, { h: 24, name: '1 day', off: 0.10 }, { h: 168, name: '1 week', off: 0.25 }];
+const NARR = {
+  shelf: { a: ['Capybara','Frog','Goose','Hamster','Penguin','Raccoon','Otter','Pigeon','Axolotl','Walrus','Lobster','Possum'], b: ['Council','Summer','Army','Season','Parade','Gym','Choir','Union','Club','Rally','Picnic','Mob'],
+           s: ['mentions up {n}% in 6 h','in the top 20 on pump.fun','meme format spreading across 3 apps','sticker pack went viral overnight'] },
+  deep: { a: ['Solarpunk','Robot Pet','Lunar Hotel','Mushroom Coffee','Drone Racing','Seed Vault','Tiny House','Retro Handheld','Night Market','Ocean Farm','Kelp Fuel','Sky Rail'], b: ['Guild','Network','League','Society','Labs','Collective','Works','Lodge','Crew','Circuit','Bureau','Commons'],
+           s: ['growing in {n} small group chats','early wallets are talking about it','forum thread doubled in 48 h','picked up by a niche newsletter'] },
+  frontier: { a: ['Dormant Whale','Memo Spam','Vanity Key','Zero Holder','Orphan Mint','Ghost Validator','Lost Seed','Dust Storm','Burn Address','Midnight Swap','Null Slot','Prime Lamport'], b: ['Signal','Echo','Relic','Anomaly','Fossil','Cipher','Vein','Seam','Ore','Core','Shard','Lode'],
+           s: ['a wallet woke up after {n} days','odd memo pattern in {n} transactions','a mint with strange metadata','repeating transfers of {n} lamports'] }
+};
+
+/* ---------- utils ---------- */
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function mulberry(a){ return function(){ a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+function hash(n){ n = (n ^ 61) ^ (n >>> 16); n = n + (n << 3); n = n ^ (n >>> 4); n = Math.imul(n, 0x27d4eb2d); n = n ^ (n >>> 15); return n >>> 0; }
+function gauss(r = Math.random){ let u = 0, v = 0; while (!u) u = r(); while (!v) v = r(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); }
+const pick = (arr, r = Math.random) => arr[Math.floor(r() * arr.length)];
+const fmtSol = x => { x = +x || 0; return x >= 100 ? x.toFixed(1) : x >= 1 ? x.toFixed(2) : x >= 0.01 ? x.toFixed(3) : x > 0 ? x.toFixed(4) : '0'; };
+const fmtTok = x => { x = +x || 0; if (x >= 1e9) return (x/1e9).toFixed(2) + 'B'; if (x >= 1e6) return (x/1e6).toFixed(x >= 1e7 ? 1 : 2) + 'M'; if (x >= 1e3) return (x/1e3).toFixed(x >= 1e4 ? 0 : 1) + 'k'; return Math.round(x) + ''; };
+const pad2 = n => String(n).padStart(2, '0');
+const clockStr = t => `Day ${Math.floor(t / DAY) + 1}, ${pad2(Math.floor(t % DAY / 3600))}:${pad2(Math.floor(t % 3600 / 60))}`;
+function ago(t){ const s = S.t - t; if (s < 60) return 'just now'; if (s < 3600) return Math.floor(s / 60) + ' min ago'; if (s < DAY) return `${Math.floor(s / 3600)} h ${Math.floor(s % 3600 / 60)} min ago`; return Math.floor(s / DAY) + ' d ago'; }
+function left(t){ const s = Math.max(0, t - S.t); if (s < 3600) return Math.ceil(s / 60) + ' min'; if (s < DAY) return `${Math.floor(s / 3600)} h ${Math.floor(s % 3600 / 60)} min`; return `${Math.floor(s / DAY)} d ${Math.floor(s % DAY / 3600)} h`; }
+const short = a => a ? a.slice(0, 4) + '…' + a.slice(-4) : '';
+const B58 = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
+const randAddr = r => Array.from({ length: 44 }, () => B58[Math.floor(r() * 58)]).join('');
+const mintPrice = n => CFG.MINT0 + (CFG.MINT1 - CFG.MINT0) * (Math.min(n, CFG.SUPPLY) - 1) / (CFG.SUPPLY - 1);
+const price = () => CFG.PRICE0 * (1 + S.burned / CFG.TOKEN_SUPPLY * 40);
+const r50 = x => Math.max(50, Math.round(x / 50) * 50);
+
+/* ---------- sprites ---------- */
+function runs(ch){
+  let r = '';
+  RIG.forEach((row, y) => { let x = 0; while (x < row.length) { if (row[x] === ch) { const s = x; while (x < row.length && row[x] === ch) x++; r += `<rect x="${s}" y="${y}" width="${x - s}" height="1"/>`; } else x++; } });
+  return r;
+}
+document.getElementById('sprites').innerHTML = `<g id="rigS">${runs('s')}</g><g id="rigG">${runs('g')}</g>`;
+function pix(rows){
+  const h = rows.length, w = rows[0].length; let r = '';
+  rows.forEach((row, y) => [...row].forEach((c, x) => { if (c === '#') r += `<rect x="${x}" y="${y}" width="1" height="1"/>`; else if (c === 'g') r += `<rect class="g" x="${x}" y="${y}" width="1" height="1"/>`; }));
+  return `<svg class="pix" viewBox="0 0 ${w} ${h}" shape-rendering="crispEdges" aria-hidden="true">${r}</svg>`;
+}
+const MINI = `<svg class="mini" viewBox="0 0 61 66" shape-rendering="crispEdges" aria-hidden="true"><use href="#rigS" class="st"/><use href="#rigG" class="lime"/></svg>`;
+const ICO = {
+  field: pix(['.........','.##...##.','#..#.#..#','.........','.gg...gg.','g..g.g..g','.........','#########']),
+  market: pix(['..######','.#.....#','#..gg..#','#..gg..#','.#.....#','..######']),
+  fleet: pix(['...g...','..###..','..#.#..','.#.#.#.','.##.##.','#.#.#.#','#######']),
+  rigs: pix(['.#######.','#.......#','#....####','#....#g##','#....####','#.......#','.#######.']),
+  how: pix(['###...###','#g##.##g#','#..#.#..#','#.##.##.#','#..#.#..#','###.#.###']),
+  docs: pix(['######..','#....##.','#.gg..##','#......#','#.####.#','#......#','#.####.#','########']),
+  barrel: pix(['.#####.','#.....#','#######','#ggggg#','#######','#.....#','.#####.']),
+  sonar: pix(['..###..','.#...#.','#..g..#','#.ggg.#','#..g..#','.#...#.','..###..']),
+  coin: pix(['..###..','.#ggg#.','#gg#gg#','#g###g#','#gg#gg#','.#ggg#.','..###..']),
+  gavel: pix(['##.....','###....','.###...','..##.#.','...###.','....###','.....##']),
+  key: pix(['.###.....','#...#....','#.g.#####','#...#.#.#','.###.....'])
+};
+function depthGlyph(d){ return `<svg class="dg" viewBox="0 0 7 7" shape-rendering="crispEdges" aria-hidden="true">${[0,1,2].map(i => `<rect x=".5" y="${0.5 + i * 2.2}" width="6" height="1.4" class="${i <= d ? 'on' : 'off'}"/>`).join('')}</svg>`; }
+
+/* ---------- state ---------- */
+const KEY = 'fracture-state-v1', KEYW = 'fracture-wallet-v1';
+let S, rigById = new Map(), coinById = new Map();
+function reindex(){ rigById = new Map(S.rigs.map(e => [e.id, e])); coinById = new Map(S.coins.map(c => [c.id, c])); }
+function feedPush(x){ x.t = S.t; S.feed.unshift(x); if (S.feed.length > 60) S.feed.length = 60; }
+const hourly = e => e.rv / Math.max(6, Math.min(168, (S.t - e.t) / 3600));
+const fair = (e, share) => r50(0.75 * share * Math.max(hourly(e), 0.0015 * (1 + e.field * 0.6) * e.cap) / price());
+const inAuction = e => S.auc.some(a => a.rig === e.id);
+const operatorIsUser = e => e.rent ? e.rent.user : e.user;
+
+function addOther(r){
+  const n = S.rigs.length + 1; if (n > CFG.SUPPLY) return;
+  const fee = mintPrice(n), x = r(), field = x < 0.55 ? 0 : x < 0.88 ? 1 : 2;
+  const e = { id: n, owner: randAddr(r), field, cap: 1 + (r() < 0.3 ? 1 : 0) + (r() < 0.08 ? 1 : 0), freq: 1 + Math.min(4, Math.floor(r() * r() * 5)), auto: 1 + (r() < 0.5 ? 1 : 0),
+    res: CFG.RES_MAX, live: 0, count: 0, unclaimed: 0, rentUn: 0, own: 0, life: 0, rv: 0, j: [], user: false, mode: 'auto', list: null, rent: null, t: S.t };
+  if (r() < 0.38) e.list = { share: pick([0.5, 0.6, 0.7, 0.8], r), k: 0.8 + r() * 0.6, price: 0 };
+  let burnTok = FIELDS[field].unlock;
+  for (const k of ['cap','freq','auto']) for (let l = 1; l < e[k]; l++) burnTok += UP[k].cost(l);
+  S.burnSol += fee * 0.5; S.burned += fee * 0.5 / price() + burnTok; S.ops += fee * 0.5;
+  S.rigs.push(e); rigById.set(e.id, e);
+  if (e.list) e.list.price = r50(fair(e, e.list.share) * e.list.k);
+  feedPush({ k: 'mint', rig: e.id, f: field });
+}
+function makeNarr(f, r = Math.random){
+  const p = NARR[FIELDS[f].key], a = pick(p.a, r), b = pick(p.b, r);
+  const tick = (a.replace(/[^A-Za-z]/g, '').slice(0, 4) + b.replace(/[^A-Za-z]/g, '').slice(0, 1 + Math.floor(r() * 3))).toUpperCase();
+  const n = [200 + Math.floor(r() * 900), 4 + Math.floor(r() * 30), 300 + Math.floor(r() * 1400)][f];
+  return { name: `${a} ${b}`, tick, sig: pick(p.s, r).replace('{n}', n) };
+}
+function strike(e, n){
+  if (e.res <= 0) return false;
+  const d = FIELDS[e.field];
+  const F = Math.exp(d.mu + d.sd * gauss()), L = Math.exp(Math.log(120) + 0.9 * gauss());
+  const c = { id: S.nextCoin++, rig: e.id, f: e.field, tick: n.tick, name: n.name, sig: n.sig, t0: S.t, F, L, fees: 0, alive: true, grad: false, gradAt: F > 5 ? F * 0.3 : -1 };
+  S.coins.push(c); coinById.set(c.id, c);
+  e.res--; e.live++; e.count++; e.j.unshift(c.id);
+  if (e.j.length > 64) { for (let i = e.j.length - 1; i >= 0; i--) { const cc = coinById.get(e.j[i]); if (!cc || !cc.alive) { e.j.splice(i, 1); break; } } if (e.j.length > 64) e.j.length = 64; }
+  feedPush({ k: 'launch', rig: e.id, tick: c.tick, f: e.field });
+  S.ver++;
+  if (operatorIsUser(e) && S.speed <= 60) toast(`Rig #${e.id} struck $${c.tick}`);
+  return true;
+}
+function pay(c, f){
+  c.fees += f;
+  const e = rigById.get(c.rig);
+  if (e) {
+    const op = f * CFG.OPER, renter = e.rent ? op * e.rent.share : 0;
+    e.rentUn += renter; e.unclaimed += op - renter; e.own += op - renter; e.life += op; e.rv += op;
+  }
+  S.burnSol += f * CFG.BURN; S.burned += f * CFG.BURN / price(); S.ops += f * CFG.OPS;
+}
+function startRent(e, who, isUser, hours, cost, share){
+  e.rent = { who, user: isUser, until: S.t + hours * 3600, share, hours };
+  e.rentUn = 0;
+  S.burned += cost * CFG.RENT_BURN;
+  if (e.user && !isUser) { S.wal.fra += cost * CFG.RENT_OWNER; S.rentIncome += cost * CFG.RENT_OWNER; toast(`Rig #${e.id} rented for ${hours === 1 ? '1 hour' : hours === 24 ? '1 day' : '1 week'}: +${fmtTok(cost * CFG.RENT_OWNER)} $FRACTURE`); }
+  feedPush({ k: 'rent', rig: e.id, h: hours });
+  S.ver++;
+}
+function endRent(e){
+  if (e.rent.user && e.rentUn > 0) { S.wal.sol += e.rentUn; toast(`Rental of rig #${e.id} ended. ${fmtSol(e.rentUn)} SOL settled to your wallet.`); }
+  e.rentUn = 0; e.rent = null; S.ver++;
+}
+function prune(){
+  const cut = S.t - 8 * 3600;
+  S.coins = S.coins.filter(c => c.alive || c.grad || c.t0 > cut || rigById.get(c.rig)?.user);
+  coinById = new Map(S.coins.map(c => [c.id, c]));
+  for (const e of S.rigs) if (e.list && !e.user) e.list.price = r50(fair(e, e.list.share) * e.list.k);
+}
+function spawnAuction(){
+  const pool = S.rigs.filter(e => !e.user && !e.rent && !e.list && !inAuction(e) && e.res > 4).sort((a, b) => hourly(b) - hourly(a)).slice(0, 14);
+  if (!pool.length) return;
+  const e = pick(pool), start = r50(fair(e, 0.7) * 24 * 0.55);
+  S.auc.push({ a: S.nextA++, rig: e.id, bid: start, start, bidder: null, ends: S.t + (1.5 + Math.random() * 2.5) * 3600, share: 0.7 });
+  S.ver++;
+}
+function step(dm){
+  const t0 = S.t; S.t += dm * 60;
+  if (S.rigs.length < CFG.SUPPLY && Math.random() < dm * CFG.OTHER_RATE) { addOther(Math.random); S.ver++; }
+  for (const e of S.rigs) {
+    if (e.rent && S.t >= e.rent.until) endRent(e);
+    if (e.res <= 0) {
+      if (!e.user && Math.random() < dm / 180) { S.burned += CFG.RES_MAX * CFG.BARREL; e.res = CFG.RES_MAX; }
+      else if (e.user && e.auto >= 2 && S.wal.fra >= (CFG.RES_MAX - e.res) * CFG.BARREL) { const c = (CFG.RES_MAX - e.res) * CFG.BARREL; S.wal.fra -= c; S.burned += c; e.res = CFG.RES_MAX; toast(`Rig #${e.id} refilled its reserves: ${fmtTok(c)} $FRACTURE burned`); S.ver++; }
+    }
+    if (e.user && e.auto >= 3 && e.unclaimed > 0.005) { S.wal.sol += e.unclaimed; e.unclaimed = 0; }
+    if (e.list && !e.rent && !inAuction(e) && !(e.user && false)) {
+      const a = Math.max(0.05, Math.min(3, fair(e, e.list.share) / e.list.price));
+      if (Math.random() < dm / 1100 * a) {
+        const x = Math.random(), d = DURS[x < 0.5 ? 0 : x < 0.9 ? 1 : 2], cost = e.list.price * d.h * (1 - d.off);
+        startRent(e, randAddr(Math.random), false, d.h, cost, e.list.share);
+      }
+    }
+    if (e.live >= e.cap || e.res <= 0) continue;
+    if (Math.random() < dm * FIELDS[e.field].rate * (1 + 0.25 * (e.freq - 1))) {
+      const n = makeNarr(e.field);
+      if (e.mode === 'review' && operatorIsUser(e)) { if (!S.queue.some(q => q.rig === e.id)) { S.queue.push({ q: S.nextCoin++, rig: e.id, n, t: S.t }); S.ver++; } }
+      else strike(e, n);
+    }
+  }
+  for (const c of S.coins) {
+    if (!c.alive) continue;
+    const a0 = Math.max(0, (t0 - c.t0) / 60), a1 = Math.max(0, (S.t - c.t0) / 60);
+    const f = c.F * (Math.exp(-a0 / c.L) - Math.exp(-a1 / c.L));
+    if (f > 0) pay(c, f);
+    if (!c.grad && c.gradAt > 0 && c.fees >= c.gradAt) { c.grad = true; feedPush({ k: 'grad', rig: c.rig, tick: c.tick, f: c.f }); S.ver++; }
+    if (a1 > 3 * c.L) { c.alive = false; const e = rigById.get(c.rig); if (e) e.live = Math.max(0, e.live - 1); S.ver++; }
+  }
+  const decay = Math.exp(-dm * 60 / (7 * DAY));
+  for (const e of S.rigs) e.rv *= decay;
+  for (const a of S.auc) {
+    if (S.t < a.ends && Math.random() < dm / 40) {
+      const nb = r50(Math.max(a.start, a.bid * (1.06 + Math.random() * 0.08)));
+      if (nb <= fair(rigById.get(a.rig), a.share) * 24 * 1.25) {
+        if (a.bidder === 'you') { S.wal.fra += a.bid; toast(`You were outbid on rig #${a.rig}`); }
+        a.bid = nb; a.bidder = randAddr(Math.random); S.ver++;
+      }
+    }
+  }
+  for (const a of S.auc.filter(a => S.t >= a.ends)) {
+    const e = rigById.get(a.rig);
+    if (a.bidder && e && !e.rent) { startRent(e, a.bidder === 'you' ? W.addr : a.bidder, a.bidder === 'you', 24, a.bid, a.share); feedPush({ k: 'auction', rig: e.id }); if (a.bidder === 'you') toast(`You won the auction for rig #${e.id}. It’s yours to run for 24 hours.`); }
+    else if (a.bidder === 'you') S.wal.fra += a.bid;
+    S.auc = S.auc.filter(x => x !== a); S.ver++;
+  }
+  while (S.auc.length < 3) { const before = S.auc.length; spawnAuction(); if (S.auc.length === before) break; }
+  const ql = S.queue.length; S.queue = S.queue.filter(q => S.t - q.t < 1800); if (S.queue.length !== ql) S.ver++;
+  if (Math.floor(S.t / 3600) !== Math.floor(t0 / 3600)) prune();
+}
+function advance(minutes){ while (minutes > 0) { const d = Math.min(5, minutes); step(d); minutes -= d; } }
+function newWorld(){
+  S = { v: 1, t: CFG.START_T - 2 * DAY, speed: 60, rigs: [], coins: [], feed: [], queue: [], auc: [], burned: 0, burnSol: 0, ops: 0, rentIncome: 0, wal: { sol: 30, fra: 200000 }, nextCoin: 1, nextA: 1, ver: 0 };
+  rigById = new Map(); coinById = new Map();
+  const r = mulberry(13);
+  for (let i = 0; i < 140; i++) addOther(r);
+  advance(2 * 24 * 60);
+  S.feed = S.feed.slice(0, 40);
+}
+function save(){ try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
+function load(){
+  try { const raw = localStorage.getItem(KEY); if (raw) { const s = JSON.parse(raw); if (s && s.v === 1 && Array.isArray(s.rigs)) { S = s; reindex(); return; } } } catch (e) {}
+  newWorld();
+}
+
+/* ---------- wallet (Wallet Standard + injected providers, validated with @solana/web3.js) ---------- */
+const W = { list: [], addr: null, name: null, entry: null, kind: null, balance: null };
+const isMine = e => !!(e && e.user && W.addr && e.owner === W.addr);
+const isRenting = e => !!(e && e.rent && e.rent.user && W.addr && e.rent.who === W.addr);
+function addWallet(x){ if (!W.list.some(w => w.name.toLowerCase() === x.name.toLowerCase())) W.list.push(x); }
+const wsApi = { register: (...ws) => { ws.forEach(w => { try { if (w.features && w.features['standard:connect'] && (w.chains || []).some(c => String(c).startsWith('solana:'))) addWallet({ name: w.name, icon: w.icon, kind: 'standard', w }); } catch (e) {} }); return () => {}; } };
+try {
+  window.addEventListener('wallet-standard:register-wallet', ev => { try { ev.detail(wsApi); } catch (e) {} });
+  window.dispatchEvent(new CustomEvent('wallet-standard:app-ready', { detail: wsApi }));
+} catch (e) {}
+function detectInjected(){
+  const c = [['Phantom', window.phantom && window.phantom.solana], ['Solflare', window.solflare], ['Backpack', window.backpack], ['Solana wallet', window.solana]];
+  for (const [n, p] of c) {
+    if (!p || typeof p.connect !== 'function') continue;
+    const name = p.isPhantom ? 'Phantom' : p.isSolflare ? 'Solflare' : n;
+    if (!W.list.some(w => w.name.toLowerCase().startsWith(name.toLowerCase()))) addWallet({ name, icon: null, kind: 'injected', p });
+  }
+}
+function validAddr(a){
+  try { if (window.solanaWeb3 && solanaWeb3.PublicKey) return new solanaWeb3.PublicKey(a).toBase58(); } catch (e) { return null; }
+  return /^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(a) ? a : null;
+}
+async function connectEntry(entry, silent){
+  let addr = null;
+  if (entry.kind === 'standard') {
+    const w = entry.w;
+    if (silent) { if (w.accounts && w.accounts.length) addr = w.accounts[0].address; else return false; }
+    else { const r = await w.features['standard:connect'].connect(); const acc = (r && r.accounts && r.accounts.length ? r.accounts : w.accounts)[0]; addr = acc && acc.address; }
+    try { w.features['standard:events'] && w.features['standard:events'].on('change', ({ accounts }) => { if (accounts && accounts.length) setWallet(accounts[0].address, entry); else clearWallet(); }); } catch (e) {}
+  } else {
+    const p = entry.p;
+    const r = await p.connect(silent ? { onlyIfTrusted: true } : undefined);
+    const pk = (r && r.publicKey) || p.publicKey; addr = pk && pk.toString();
+    try { p.on && p.on('accountChanged', pk => { if (pk) setWallet(pk.toString(), entry); else clearWallet(); }); } catch (e) {}
+  }
+  if (!addr) throw new Error('The wallet returned no account.');
+  setWallet(addr, entry);
+  return true;
+}
+function setWallet(addr, entry){
+  const ok = validAddr(addr);
+  if (!ok) { toast('That wallet returned an invalid Solana address.'); return; }
+  W.addr = ok; W.name = entry ? entry.name : 'Guest wallet'; W.entry = entry || null; W.kind = entry ? entry.kind : 'guest'; W.balance = null;
+  try { localStorage.setItem(KEYW, JSON.stringify({ name: W.name, kind: W.kind, addr: W.kind === 'guest' ? W.addr : null })); } catch (e) {}
+  for (const e of S.rigs) if (e.rent && e.rent.user) e.rent.who = W.addr;
+  paintWallet(); S.ver++; render(true);
+  if (W.kind !== 'guest') fetchBalance();
+}
+async function fetchBalance(){
+  if (!window.solanaWeb3 || !W.addr) return;
+  try {
+    const conn = new solanaWeb3.Connection(CFG.RPC, 'confirmed');
+    const lamports = await Promise.race([conn.getBalance(new solanaWeb3.PublicKey(W.addr)), new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), 6000))]);
+    W.balance = lamports / solanaWeb3.LAMPORTS_PER_SOL;
+  } catch (e) { W.balance = 'unavailable'; }
+  paintWallet();
+}
+async function clearWallet(){
+  const e = W.entry;
+  try { if (e && e.kind === 'standard' && e.w.features['standard:disconnect']) await e.w.features['standard:disconnect'].disconnect(); if (e && e.kind === 'injected' && e.p.disconnect) await e.p.disconnect(); } catch (err) {}
+  Object.assign(W, { addr: null, name: null, entry: null, kind: null, balance: null });
+  try { localStorage.removeItem(KEYW); } catch (err) {}
+  $('#walletMenu').hidden = true; paintWallet(); S.ver++; render(true);
+}
+function paintWallet(){
+  const b = $('#walletBtn');
+  if (W.addr) { b.className = 'btn connected'; b.innerHTML = `<i class="dot"></i><span>${short(W.addr)}</span>`; b.setAttribute('aria-label', `Wallet ${W.addr}, open menu`); }
+  else { b.className = 'btn lime'; b.innerHTML = `<i class="dot"></i><span>Connect wallet</span>`; b.setAttribute('aria-label', 'Connect wallet'); }
+  if (W.addr) {
+    const bal = W.kind === 'guest' ? fmtSol(S.wal.sol) + ' SOL' : W.balance == null ? 'Checking…' : W.balance === 'unavailable' ? 'Unavailable' : fmtSol(W.balance) + ' SOL';
+    $('#walletMenu').innerHTML = `<div class="rows"><div><label>Wallet</label><b>${esc(W.name)}</b></div><div><label>Address</label><b>${short(W.addr)}</b></div><div><label>Balance</label><b>${bal}</b></div><div><label>$FRACTURE</label><b>${fmtTok(S.wal.fra)}</b></div></div>
+      <div class="mitems"><button data-act="copyAddr">Copy address</button>${W.kind !== 'guest' ? `<a href="https://solscan.io/account/${W.addr}" target="_blank" rel="noopener">View on Solscan</a>` : ''}<button data-act="disconnect">Disconnect</button></div>`;
+  }
+}
+function openWalletModal(){
+  detectInjected();
+  const items = W.list.map((w, i) => `<button class="wopt" data-act="pickWallet" data-i="${i}">${w.icon ? `<img src="${esc(w.icon)}" alt="">` : `<span class="ph-ico"></span>`}<span>${esc(w.name)}</span><em>Detected</em></button>`).join('');
+  modal(`<section class="panel modal" role="dialog" aria-modal="true" aria-labelledby="wt">
+    <h2 class="ph" id="wt">${ICO.rigs} Connect a Solana wallet <button class="x" data-act="close" aria-label="Close">×</button></h2>
+    <div class="wlist">
+      ${items || `<p class="small" style="margin:0">No Solana wallet found in this browser. Install one, then reload this page.</p>
+        <a class="wopt" href="https://phantom.app/download" target="_blank" rel="noopener"><span class="ph-ico"></span>Get Phantom</a>
+        <a class="wopt" href="https://solflare.com/download" target="_blank" rel="noopener"><span class="ph-ico"></span>Get Solflare</a>
+        <a class="wopt" href="https://backpack.app/downloads" target="_blank" rel="noopener"><span class="ph-ico"></span>Get Backpack</a>`}
+      <button class="wopt" data-act="guestWallet"><span class="ph-ico" style="background:var(--lime)"></span><span>Continue as guest</span></button>
+      <p class="small" style="margin:4px 0 0">Connecting shares your public address only.</p>
+    </div></section>`);
+}
+async function eagerConnect(){
+  let saved = null; try { saved = JSON.parse(localStorage.getItem(KEYW) || 'null'); } catch (e) {}
+  if (!saved) return;
+  if (saved.kind === 'guest' && saved.addr) { setWallet(saved.addr, null); return; }
+  detectInjected();
+  const entry = W.list.find(w => w.name === saved.name);
+  if (entry) { try { await connectEntry(entry, true); } catch (e) {} }
+}
+
+/* ---------- pictures ---------- */
+function rigSVG(e){
+  const f = e.field, dry = e.res <= 0, live = e.live > 0 && !dry, r = mulberry(e.id * 131 + 7);
+  let s = `<svg class="rig" viewBox="0 0 72 86" shape-rendering="crispEdges" role="img" aria-label="Rig #${e.id}, ${FIELDS[f].name}, ${e.res} of ${CFG.RES_MAX} barrels left${live ? ', drilling' : ''}">`;
+  s += `<rect x="0" y="57" width="62" height="11" class="sea"/>`;
+  const bands = [[[68,86,'r1']],[[68,75,'r1'],[75,86,'r2']],[[68,73,'r1'],[73,79,'r2'],[79,86,'r3']]][f];
+  bands.forEach(([a, b, c]) => s += `<rect x="0" y="${a}" width="72" height="${b - a}" class="${c}"/>`);
+  s += `<rect x="0" y="68" width="72" height="1" class="st"/>`;
+  const done = Math.min(10, e.count - e.live);
+  for (let i = 0; i < done; i++) s += `<rect x="${2 + Math.floor(r() * 66)}" y="${71 + Math.floor(r() * 14)}" width="1" height="1" class="m"/>`;
+  for (let i = 0; i < e.live; i++) { const x = 16 + i * 14 + Math.floor(r() * 6), y = 76 + Math.floor(r() * 7); s += `<rect x="${x}" y="69" width="1" height="${y - 69}" class="g" opacity=".7"/><rect x="${x - 1}" y="${y}" width="3" height="2" class="g"/>`; }
+  s += `<use href="#rigS" class="st"/><use href="#rigG" class="${live ? 'lime' : 'idle'}"/>`;
+  const h = Math.round(40 * e.res / CFG.RES_MAX);
+  s += `<rect x="65" y="12" width="6" height="44" class="st"/><rect x="66" y="13" width="4" height="42" class="sea"/>${h ? `<rect x="66" y="${55 - h}" width="4" height="${h}" class="${e.res / CFG.RES_MAX < 0.25 ? 'm' : 'g'}"/>` : ''}`;
+  return s + '</svg>';
+}
+let seenCoin = 0;
+function heroSVG(){
+  const SEA = 60, BED = 92, B1 = 116, B2 = 142, H = 172, Wd = 264;
+  let s = `<svg class="xs" viewBox="0 0 ${Wd} ${H}" shape-rendering="crispEdges" role="img" aria-label="Cross-section of the oil field. Each pocket is a coin a rig launched, drilled into the field where its narrative was found.">`;
+  s += `<rect x="0" y="${SEA}" width="${Wd}" height="${BED - SEA}" class="sea"/>`;
+  s += `<rect x="0" y="${BED}" width="${Wd}" height="${B1 - BED}" class="r1"/><rect x="0" y="${B1}" width="${Wd}" height="${B2 - B1}" class="r2"/><rect x="0" y="${B2}" width="${Wd}" height="${H - B2}" class="r3"/>`;
+  const r = mulberry(17);
+  for (let x = 0; x < Wd; x += 4) { const j = Math.floor(r() * 3); if (j) s += `<rect x="${x}" y="${B1}" width="4" height="${j}" class="r1"/>`; const k = Math.floor(r() * 3); if (k) s += `<rect x="${x}" y="${B2}" width="4" height="${k}" class="r2"/>`; }
+  for (let i = 0; i < 60; i++) s += `<rect x="${Math.floor(r() * Wd)}" y="${BED + 2 + Math.floor(r() * (H - BED - 3))}" width="1" height="1" class="m" opacity=".45"/>`;
+  for (let x = 72; x < Wd; x += 14) { const y = SEA + 3 + Math.floor(r() * 3); s += `<rect x="${x}" y="${y}" width="5" height="1" class="st" opacity=".5"/>`; }
+  s += `<rect x="0" y="${BED}" width="${Wd}" height="1" class="st"/>`;
+  s += `<line x1="44.5" y1="68" x2="44.5" y2="${H}" class="drill"/>`;
+  s += `<g transform="translate(14 2)"><use href="#rigS" class="st"/><use href="#rigG" class="lime"/></g>`;
+  const bands = [[BED + 4, B1 - 4], [B1 + 4, B2 - 4], [B2 + 4, H - 4]];
+  const list = S.coins.slice(-120), maxSeen = seenCoin;
+  let wells = 0;
+  for (let i = list.length - 1; i >= 0; i--) {
+    const c = list[i], h = hash(c.id * 7 + 3), [lo, hi] = bands[c.f];
+    let x = 4 + h % 186; if (x > 38 && x < 52) x += 16;
+    const y = lo + (h >>> 9) % (hi - lo);
+    const st = c.grad ? 'graduated' : c.alive ? 'live' : 'depleted';
+    if (c.alive && wells < 40) { s += `<line x1="${x + 1.5}" y1="${BED + 1}" x2="${x + 1.5}" y2="${y}" class="well"/>`; wells++; }
+    const w = c.grad ? 4 : c.alive ? 3 : 2, hh = c.grad ? 3 : c.alive ? 2 : 1;
+    s += `<rect x="${x}" y="${y}" width="${w}" height="${hh}" class="pk ${c.grad ? 'grad' : c.alive ? 'live' : 'dead'}"><title>$${esc(c.tick)}, rig #${c.rig}, ${FIELDS[c.f].name} (${st})</title></rect>`;
+    if (c.id > seenCoin) seenCoin = c.id;
+  }
+  const lab = (y, t, sub) => `<g class="lab"><rect x="${Wd - 62}" y="${y}" width="58" height="12"/><text x="${Wd - 59.5}" y="${y + 5}">${t}</text><text class="sub" x="${Wd - 59.5}" y="${y + 10}">${sub}</text></g>`;
+  s += lab(BED + 6, 'Shelf', 'trending narratives') + lab(B1 + 7, 'Deepwater', 'emerging narratives') + lab(B2 + 9, 'Frontier', 'on-chain signals');
+  return s + '</svg>';
+}
+
+/* ---------- views ---------- */
+const TABS = [['field','Oil field',ICO.field],['mint','Mint a rig',MINI],['market','Rentals',ICO.market],['fleet','Fleet',ICO.fleet],['rigs','My rigs',ICO.rigs],['how','How it works',ICO.how],['docs','Docs',ICO.docs]];
+let tab = 'field';
+const D = { field: 0 };
+const M = { field: 'all', sort: 'value', dur: 1 };
+const Q = { field: 'all', sort: 'num', show: 'all', limit: 72 };
+const LST = { id: 0, share: 0.7, mult: 1 };
+
+const LIVE = {
+  burned: () => fmtTok(S.burned),
+  live: () => String(S.coins.filter(c => c.alive).length),
+  un: id => fmtSol(rigById.get(+id)?.unclaimed) + ' SOL',
+  own: id => fmtSol(rigById.get(+id)?.own) + ' SOL',
+  rentUn: id => fmtSol(rigById.get(+id)?.rentUn) + ' SOL',
+  myUn: () => fmtSol(myRigs().reduce((a, e) => a + e.unclaimed, 0) + myRentals().reduce((a, e) => a + e.rentUn, 0)) + ' SOL',
+  claimAll: () => 'Claim all · ' + fmtSol(myRigs().reduce((a, e) => a + e.unclaimed, 0) + myRentals().reduce((a, e) => a + e.rentUn, 0)) + ' SOL',
+  ago: t => ago(+t),
+  left: t => left(+t)
+};
+const myRigs = () => W.addr ? S.rigs.filter(isMine) : [];
+const myRentals = () => W.addr ? S.rigs.filter(isRenting) : [];
+function kv(label, val, k){ return `<div><label>${label}</label><b${k ? ` data-k="${k}"` : ''}>${val}</b></div>`; }
+
+let latestSnap = null, latestAt = 0;
+function vField(){
+  const n = S.rigs.length, nn = Math.min(n + 1, CFG.SUPPLY), on = Math.round(n / CFG.SUPPLY * 50);
+  const counts = [0,1,2].map(d => S.coins.filter(c => c.alive && c.f === d).length);
+  const rented = S.rigs.filter(e => e.rent).length;
+  const nowR = performance.now();
+  if (!latestSnap || nowR - latestAt > 30000) { latestSnap = S.feed.filter(f => f.k === 'launch').slice(0, 6); latestAt = nowR; }
+  return `<div class="grid-hero"><div class="col">
+  <section class="panel">
+    <h2 class="ph">${ICO.field} Status <small>the field right now</small></h2>
+    <div class="pad">
+      <label>Rigs minted</label>
+      <div class="big"><b>${n}</b><span>/ ${CFG.SUPPLY}</span></div>
+      <div class="ticks" aria-hidden="true">${Array.from({ length: 50 }, (_, i) => `<i class="${i < on ? 'on' : ''}${i === on - 1 ? ' last' : ''}"></i>`).join('')}</div>
+      <div class="kv4">
+        ${kv('Mint price', n >= CFG.SUPPLY ? 'Sold out' : fmtSol(mintPrice(nn)) + ' SOL')}
+        ${kv('Live wells', counts[0] + counts[1] + counts[2], 'live')}
+        ${kv('Rigs on rent', rented)}
+        ${kv('$FRACTURE burned', fmtTok(S.burned), 'burned')}
+      </div>
+      <button class="btn lime wide" data-go="mint">Mint a rig</button>
+    </div>
+  </section>
+  <section class="panel">
+    <h2 class="ph">${ICO.coin} $FRACTURE <small>token</small></h2>
+    <div class="kv2"><div><label>Project</label><b>Fracture</b></div><div><label>Ticker</label><b>$FRACTURE</b></div></div>
+    ${CFG.X ? `<div class="btnrow"><a class="btn" href="${esc(CFG.X)}" target="_blank" rel="noopener">Follow @FractureRent on X</a></div>` : ''}
+  </section>
+  </div>
+  <section class="panel hero">
+    <h2 class="ph">${MINI} Cross-section <small>every well drilled in the last hours, in the field it was found</small></h2>
+    <div class="hero-copy">
+      <h1>Own the rig. Rent the rig. <em>Extract the fees.</em></h1>
+      <p>Each rig is an NFT that finds narratives, launches coins on pump.fun and collects their creator fees. Run it yourself, rent it out, or rent someone else’s.</p>
+    </div>
+    <div class="xsec">${heroSVG()}</div>
+    <div class="legend">
+      <span><i style="background:var(--lime)"></i>Live well</span>
+      <span><i style="background:var(--lime);outline:1.5px solid var(--ink)"></i>Graduated to PumpSwap</span>
+      <span><i style="background:var(--mute);border-color:var(--mute)"></i>Depleted</span>
+      <span>Shelf ${counts[0]} live, deepwater ${counts[1]}, frontier ${counts[2]}</span>
+    </div>
+  </section>
+  </div>
+  <section class="panel mt">
+    <h2 class="ph">${ICO.docs} Latest strikes <small>coins the rigs just launched</small><button class="link end" data-go="fleet">Open the fleet</button></h2>
+    ${latestSnap.length ? `<div class="feed">${latestSnap.map(f => { const e = rigById.get(f.rig); return `<div>${e ? rigSVG(e) : ''}<b>$${esc(f.tick)}</b><p>Rig #${f.rig} · ${FIELDS[f.f].name}</p><span class="ago" data-k="ago:${f.t}">${ago(f.t)}</span></div>`; }).join('')}</div>`
+      : `<div class="empty">${MINI}<span>No strikes yet.</span></div>`}
+  </section>
+  <section class="panel mt">
+    <h2 class="ph">${ICO.how} How it works <small>five steps</small><button class="link end" data-go="how">All the rules</button></h2>
+    ${stepsHTML()}
+  </section>`;
+}
+function stepsHTML(){
+  const st = [
+    [MINI, 'Mint a rig', 'Mint a limited-supply rig NFT. 777 will ever exist.'],
+    [ICO.sonar, 'Find oil fields', 'AI agents scan posts, chatter and on-chain activity for narratives worth drilling.'],
+    [ICO.fleet, 'Drill for tokens', 'The rig launches a coin on pump.fun from each find. Every coin is a new well.'],
+    [ICO.barrel, 'Extract revenue', '60% of each coin’s creator fees flows to whoever is running the rig.'],
+    [ICO.key, 'Upgrade or rent', 'Spend $FRACTURE on upgrades and reserves, or rent the rig out for passive income.']
+  ];
+  return `<div class="steps">${st.map((x, i) => `<div>${x[0]}<span class="n">${pad2(i + 1)}</span><h3>${x[1]}</h3><p>${x[2]}</p></div>`).join('')}</div>`;
+}
+
+function vMint(){
+  const n = S.rigs.length + 1, fee = mintPrice(n), fd = FIELDS[D.field], soldOut = n > CFG.SUPPLY;
+  const shortSol = S.wal.sol < fee, shortFra = S.wal.fra < fd.unlock;
+  const can = W.addr && !soldOut && !shortSol && !shortFra;
+  const preview = { id: n, field: D.field, live: 2, count: 4, res: CFG.RES_MAX, cap: 2 };
+  return `<div class="grid-2"><div class="col">
+  <section class="panel step">
+    <h2 class="ph"><b>Step 1</b> <small>choose an oil field</small><span class="tag lime end">Now</span></h2>
+    <div class="pad"><h3>Where should it drill?</h3>
+      <p>The field decides where the rig looks for narratives. You can explore a further field later.</p>
+      <div class="opts">${FIELDS.map((d, i) => `<button class="opt" data-act="pickField" data-i="${i}" aria-pressed="${D.field === i}">${depthGlyph(i)}<b>${d.name}</b><span>${d.finds}</span>
+        <dl><dt>Survey</dt><dd>${d.unlock ? fmtTok(d.unlock) + ' $FRA' : 'Free'}</dd><dt>Strike rate</dt><dd>${d.freq}</dd><dt>Spread</dt><dd>${d.spread}</dd></dl></button>`).join('')}</div>
+      <p class="note">${fd.blurb} Further fields cost more $FRACTURE and widen the range of outcomes. They don’t raise the average.</p>
+    </div>
+  </section>
+  <section class="panel step">
+    <h2 class="ph"><b>Step 2</b> <small>${fmtSol(fee)} SOL to mint</small></h2>
+    <div class="pad"><h3>${soldOut ? 'All 777 rigs are out' : `Mint rig #${n}`}</h3>
+      <p>${soldOut ? 'The supply is closed. Rigs now change hands on Tensor and Magic Eden, or you can rent one.' : `It comes with ${CFG.RES_MAX} barrels of reserves, one per strike. The mint price goes half to $FRACTURE buy and burn, half to operations. The survey cost is burned.`}</p>
+      ${!W.addr ? `<button class="btn dark" data-act="wallet">Connect wallet to mint</button>`
+        : `<button class="btn dark" data-act="mint" ${can ? '' : 'disabled'}>Mint rig #${n}</button>
+           ${shortSol ? `<p class="warn" style="margin:12px 0 0">Not enough SOL in your wallet.</p>` : ''}
+           ${shortFra ? `<p class="warn" style="margin:12px 0 0">You need ${fmtTok(fd.unlock)} $FRACTURE to survey ${fd.name}. Swap some from My rigs.</p>` : ''}`}
+    </div>
+  </section></div>
+  <aside class="col">
+    <section class="panel"><h2 class="ph">${MINI} You get <small>after step 2</small></h2>
+      <div class="youget"><div class="frame">${rigSVG(preview)}</div><div><b>#${Math.min(n, CFG.SUPPLY)}</b><span>${fd.name} rig<br>${CFG.RES_MAX} barrels in reserve</span></div></div>
+    </section>
+    <section class="panel"><h2 class="ph">${ICO.coin} Summary <small>what moves</small></h2>
+      <div class="rows">
+        ${kv('Mint price', fmtSol(fee) + ' SOL')}
+        ${kv('Survey (burned)', fd.unlock ? fmtTok(fd.unlock) + ' $FRACTURE' : 'Free')}
+        ${kv('Your share of fees', '60%')}
+        ${kv('Wallet SOL', fmtSol(S.wal.sol) + ' SOL')}
+        ${kv('Wallet $FRACTURE', fmtTok(S.wal.fra))}
+      </div>
+    </section>
+  </aside></div>`;
+}
+
+function vMarket(){
+  const d = DURS[M.dur];
+  let list = S.rigs.filter(e => e.list);
+  if (M.field !== 'all') list = list.filter(e => e.field === +M.field);
+  const sorters = { value: (a, b) => (b.list.share * hourly(b) / b.list.price) - (a.list.share * hourly(a) / a.list.price), price: (a, b) => a.list.price - b.list.price, rev: (a, b) => hourly(b) - hourly(a), share: (a, b) => b.list.share - a.list.share };
+  list.sort((a, b) => (!!a.rent - !!b.rent) || sorters[M.sort](a, b));
+  const segb = (key, val, label) => `<button class="chip" data-act="m" data-key="${key}" data-val="${val}" aria-pressed="${String(M[key]) === String(val)}">${label}</button>`;
+  const auctions = S.auc.map(a => {
+    const e = rigById.get(a.rig), mine = a.bidder === 'you', next = a.bidder ? r50(a.bid * 1.1) : a.bid;
+    return `<div class="auc"><div class="top2">${rigSVG(e)}<div><h4>Rig #${e.id}</h4><span class="small">${FIELDS[e.field].name} · ${fmtSol(hourly(e))} SOL/h</span></div></div>
+      <label>${mine ? 'Your bid is winning' : a.bidder ? 'Top bid' : 'Starting bid'}</label>
+      <div class="bid">${fmtTok(a.bid)} <small>$FRACTURE</small></div>
+      <p class="small" style="margin:0 0 12px">24 h rental, renter keeps ${Math.round(a.share * 100)}%. Ends in <span data-k="left:${a.ends}">${left(a.ends)}</span>.</p>
+      ${!W.addr ? `<button class="btn sm" data-act="wallet">Connect wallet to bid</button>` : mine ? `<button class="btn sm" disabled>You’re the top bidder</button>` : `<button class="btn sm lime" data-act="bid" data-a="${a.a}" ${S.wal.fra < next ? 'disabled' : ''}>Bid ${fmtTok(next)}</button>`}
+    </div>`; }).join('');
+  return `<section class="panel"><h2 class="ph">${ICO.gavel} Rental auctions <small>the best-earning rigs go to the highest bidder</small></h2>
+    ${auctions ? `<div class="aucs">${auctions}</div>` : `<div class="empty">${MINI}<span>No auctions running right now.</span></div>`}
+  </section>
+  <section class="panel mt"><h2 class="ph">${ICO.market} Rigs for rent <small>${list.length} listed</small></h2>
+    <div class="filters">
+      <div class="seg"><span>Rent for</span>${DURS.map((x, i) => segb('dur', i, x.name + (x.off ? ` (−${x.off * 100}%)` : ''))).join('')}</div>
+      <div class="seg"><span>Field</span>${segb('field','all','All')}${FIELDS.map((f, i) => segb('field', String(i), f.name)).join('')}</div>
+      <div class="seg"><span>Sort</span>${segb('sort','value','Best value')}${segb('sort','rev','Revenue')}${segb('sort','price','Price')}${segb('sort','share','Renter share')}</div>
+    </div>
+    ${list.length ? `<div class="lists">${list.map(e => { const cost = e.list.price * d.h * (1 - d.off), mine = isMine(e);
+      return `<div class="lcard">${rigSVG(e)}<div><h4>#${e.id}${mine ? '<span class="tag lime">Yours</span>' : ''}</h4>
+        <dl><dt>Field</dt><dd>${FIELDS[e.field].name}</dd><dt>Revenue</dt><dd>${fmtSol(hourly(e))} SOL/h</dd><dt>Renter share</dt><dd>${Math.round(e.list.share * 100)}%</dd><dt>Reserves</dt><dd>${e.res} / ${CFG.RES_MAX}</dd><dt>Price</dt><dd>${fmtTok(e.list.price)} /h</dd></dl>
+        ${e.rent ? `<button class="btn sm" disabled>Rented, back in ${left(e.rent.until)}</button>` : mine ? `<button class="btn sm" data-go="rigs">Manage listing</button>`
+          : !W.addr ? `<button class="btn sm" data-act="wallet">Connect wallet</button>`
+          : `<button class="btn sm lime" data-act="rent" data-id="${e.id}" ${S.wal.fra < cost || inAuction(e) ? 'disabled' : ''}>Rent ${d.name} · ${fmtTok(cost)}</button>`}
+      </div></div>`; }).join('')}</div>` : `<div class="empty">${MINI}<span>No rigs listed in this field.</span></div>`}
+  </section>`;
+}
+
+function vFleet(){
+  let list = S.rigs.slice();
+  if (Q.field !== 'all') list = list.filter(e => e.field === +Q.field);
+  if (Q.show === 'mine') list = list.filter(isMine);
+  if (Q.show === 'drilling') list = list.filter(e => e.live > 0);
+  if (Q.show === 'rent') list = list.filter(e => e.list && !e.rent);
+  const sorters = { num: (a, b) => a.id - b.id, rev: (a, b) => b.life - a.life, coins: (a, b) => b.count - a.count, res: (a, b) => b.res - a.res };
+  list.sort(sorters[Q.sort]);
+  const segb = (key, val, label) => `<button class="chip" data-act="q" data-key="${key}" data-val="${val}" aria-pressed="${Q[key] === val}">${label}</button>`;
+  return `<section class="panel">
+    <h2 class="ph">${ICO.fleet} Fleet <small>every rig minted so far</small></h2>
+    <div class="filters">
+      <div class="seg"><span>Field</span>${segb('field','all','All')}${FIELDS.map((f, i) => segb('field', String(i), f.name)).join('')}</div>
+      <div class="seg"><span>Sort</span>${segb('sort','num','Number')}${segb('sort','rev','Revenue')}${segb('sort','coins','Wells drilled')}${segb('sort','res','Reserves')}</div>
+      <div class="seg"><span>Show</span>${segb('show','all','All')}${segb('show','drilling','Drilling now')}${segb('show','rent','For rent')}${segb('show','mine','Mine')}</div>
+    </div>
+  </section>
+  <section class="panel mt">
+    <h2 class="ph">${MINI} Rigs <small>${list.length} shown</small></h2>
+    ${list.length ? `<div class="cards">${list.slice(0, Q.limit).map(e => `<button class="card" data-act="openRig" data-id="${e.id}">${rigSVG(e)}<b>#${e.id}${isMine(e) ? '<span class="tag lime you">You</span>' : ''}</b><span class="meta">${FIELDS[e.field].name}${e.rent ? ' · rented' : e.list ? ' · for rent' : ''}<br>${e.count} wells · ${fmtSol(e.life)} SOL</span></button>`).join('')}</div>
+      ${list.length > Q.limit ? `<div class="more"><button class="btn sm" data-act="more">Show ${Math.min(72, list.length - Q.limit)} more</button></div>` : ''}`
+      : `<div class="empty">${MINI}<span>${Q.show === 'mine' ? 'You don’t own a rig yet.' : 'Nothing matches these filters.'}</span>${Q.show === 'mine' ? '<button class="btn sm lime" data-go="mint">Mint a rig</button>' : ''}</div>`}
+  </section>`;
+}
+
+function upRow(e, k){
+  const u = UP[k], l = e[k], max = l >= u.max, cost = u.cost(l);
+  return `<div class="up"><b>${u.name}<span class="pips" aria-label="Level ${l} of ${u.max}">${Array.from({ length: u.max }, (_, i) => `<i class="${i < l ? 'on' : ''}"></i>`).join('')}</span></b>
+    <small>${max ? (k === 'auto' ? 'Fully automated' : 'Maxed out') : (k === 'auto' ? 'Next: ' + u.eff(l).toLowerCase() : u.eff(l))}</small>
+    <button class="btn sm" data-act="upgrade" data-id="${e.id}" data-k="${k}" ${max || S.wal.fra < cost ? 'disabled' : ''}>${max ? 'Maxed' : 'Upgrade · ' + fmtTok(cost)}</button></div>`;
+}
+function refillBtn(e){ const c = (CFG.RES_MAX - e.res) * CFG.BARREL; return `<button class="btn sm" data-act="refill" data-id="${e.id}" ${!c || S.wal.fra < c ? 'disabled' : ''}>${c ? 'Refill · ' + fmtTok(c) : 'Reserves full'}</button>`; }
+function vRigs(){
+  if (!W.addr) return `<section class="panel"><h2 class="ph">${ICO.rigs} My rigs</h2>
+    <div class="empty">${MINI}<span>Connect a wallet to see the rigs you own or rent and claim their fees.</span><button class="btn lime" data-act="wallet">Connect wallet</button></div></section>`;
+  const mine = myRigs(), rented = myRentals(), qs = S.queue.filter(q => { const e = rigById.get(q.rig); return isMine(e) && !e.rent || isRenting(e); });
+  return `<section class="panel"><h2 class="ph">${ICO.rigs} My rigs <small>fees wait on each rig until you claim them</small></h2>
+    <div class="kv5">
+      <div><label>Rigs owned</label><b>${mine.length}</b></div>
+      <div><label>Rigs rented</label><b>${rented.length}</b></div>
+      <div><label>Unclaimed</label><b class="g" data-k="myUn">${LIVE.myUn()}</b></div>
+      <div><label>Wallet SOL</label><b>${fmtSol(S.wal.sol)}</b></div>
+      <div><label>$FRACTURE</label><b>${fmtTok(S.wal.fra)}</b></div>
+    </div>
+    <div class="actions">
+      <button class="btn lime" data-act="claimAll" data-k="claimAll">${LIVE.claimAll()}</button>
+      <button class="btn" data-go="mint">Mint a rig</button>
+      <button class="btn" data-go="market">Rent a rig</button>
+      <button class="btn" data-act="buyFra" ${S.wal.sol < 1 ? 'disabled' : ''}>Swap 1 SOL for $FRACTURE</button>
+    </div>
+  </section>
+  ${qs.length ? `<section class="panel mt"><h2 class="ph">${ICO.sonar} Waiting for approval <small>finds expire after 30 minutes</small></h2>
+    <div class="queue">${qs.map(q => { const e = rigById.get(q.rig); return `<div><div><b>$${esc(q.n.tick)}</b><p>Rig #${q.rig}, ${FIELDS[e.field].name.toLowerCase()}. Signal: ${esc(q.n.sig)}. Found <span data-k="ago:${q.t}">${ago(q.t)}</span>.</p></div>
+      <div class="btns"><button class="btn sm lime" data-act="approve" data-q="${q.q}" ${e.live >= e.cap || e.res <= 0 ? 'disabled' : ''}>Drill $${esc(q.n.tick)}</button><button class="btn sm" data-act="discard" data-q="${q.q}">Discard</button></div></div>`; }).join('')}</div></section>` : ''}
+  ${rented.length ? `<section class="panel mt"><h2 class="ph">${ICO.key} Rented by you <small>your share settles to your wallet when the rental ends</small></h2>
+    ${rented.map(e => `<div class="rigrow"><div>${rigSVG(e)}</div>
+      <div><h3>#${e.id} <span class="tag ghost">${FIELDS[e.field].name}</span></h3>
+        <div class="stats">
+          <div><label>Time left</label><b data-k="left:${e.rent.until}">${left(e.rent.until)}</b></div>
+          <div><label>You keep</label><b>${Math.round(e.rent.share * 100)}%</b></div>
+          <div><label>Your earnings</label><b data-k="rentUn:${e.id}">${LIVE.rentUn(e.id)}</b></div>
+          <div><label>Reserves</label><b>${e.res} / ${CFG.RES_MAX}</b></div>
+        </div>
+        <div class="btns">${refillBtn(e)}<button class="btn sm" data-act="toggleMode" data-id="${e.id}">${e.mode === 'auto' ? 'Approve each strike' : 'Drill on its own'}</button><button class="btn sm" data-act="openRig" data-id="${e.id}">Journal</button></div>
+      </div>
+      <div><p class="small" style="margin:0">Wells live: ${e.live} of ${e.cap}. Owner ${short(e.owner)} keeps the other ${100 - Math.round(e.rent.share * 100)}% of the operator share.</p></div></div>`).join('')}
+  </section>` : ''}
+  <section class="panel mt"><h2 class="ph">${MINI} Rigs you own <small>${mine.length}</small></h2>
+    ${mine.length ? mine.map(e => `<div class="rigrow">
+      <div>${rigSVG(e)}</div>
+      <div><h3>#${e.id} <span class="tag ghost">${FIELDS[e.field].name}</span></h3>
+        <div class="stats">
+          <div><label>Wells live</label><b>${e.live} / ${e.cap}</b></div>
+          <div><label>Reserves</label><b>${e.res} / ${CFG.RES_MAX} barrels</b></div>
+          <div><label>Unclaimed</label><b data-k="un:${e.id}">${LIVE.un(e.id)}</b></div>
+          <div><label>Owner earnings</label><b data-k="own:${e.id}">${LIVE.own(e.id)}</b></div>
+        </div>
+        <div class="btns">
+          <button class="btn sm lime" data-act="claim" data-id="${e.id}">Claim</button>
+          ${refillBtn(e)}
+          <button class="btn sm" data-act="toggleMode" data-id="${e.id}">${e.mode === 'auto' ? 'Approve each strike' : 'Drill on its own'}</button>
+          <button class="btn sm" data-act="openRig" data-id="${e.id}">Journal</button>
+        </div>
+      </div>
+      <div>
+        <div class="rentbox">${e.rent ? `<b>Rented out</b><p>To ${short(e.rent.who)} for ${left(e.rent.until)} more. They keep ${Math.round(e.rent.share * 100)}% of the operator share; the rest still comes to you.</p>`
+          : e.list ? `<b>Listed for rent</b><p>${fmtTok(e.list.price)} $FRACTURE an hour, renter keeps ${Math.round(e.list.share * 100)}%. Payments settle to your wallet automatically.</p><div class="btns"><button class="btn sm" data-act="listOpen" data-id="${e.id}">Edit</button><button class="btn sm" data-act="unlist" data-id="${e.id}">Unlist</button></div>`
+          : `<b>Not listed</b><p>Rent it out by the hour, day or week and earn $FRACTURE without running it.</p><button class="btn sm lime" data-act="listOpen" data-id="${e.id}">List for rent</button>`}</div>
+        ${upRow(e, 'cap')}${upRow(e, 'freq')}${upRow(e, 'auto')}
+        ${e.field < 2 ? (() => { const c = FIELDS[e.field + 1].unlock - FIELDS[e.field].unlock; return `<div class="up"><b>Explore ${FIELDS[e.field + 1].name.toLowerCase()}</b><small>${FIELDS[e.field + 1].finds}. Fresh reserves included. No guarantee it earns more.</small><button class="btn sm" data-act="explore" data-id="${e.id}" ${S.wal.fra < c ? 'disabled' : ''}>Survey · ${fmtTok(c)}</button></div>`; })() : `<div class="up"><b>Frontier</b><small>This rig is as far out as it goes.</small></div>`}
+      </div></div>`).join('')
+      : `<div class="empty">${MINI}<span>None yet. Mint one and it lands here.</span><button class="btn sm lime" data-go="mint">Mint a rig</button></div>`}
+  </section>`;
+}
+function listModal(id){
+  const e = rigById.get(+id); if (!isMine(e)) return;
+  if (LST.id !== e.id) { LST.id = e.id; LST.share = e.list ? e.list.share : 0.7; LST.mult = 1; }
+  const p = r50(fair(e, LST.share) * LST.mult);
+  modal(`<section class="panel modal" role="dialog" aria-modal="true" aria-labelledby="lt">
+    <h2 class="ph" id="lt">${ICO.market} List rig #${e.id} for rent <button class="x" data-act="close" aria-label="Close">×</button></h2>
+    <div class="pad">
+      <label>Renter keeps</label>
+      <div class="seg" style="margin-bottom:16px">${[0.5,0.6,0.7,0.8].map(s => `<button class="chip" data-act="lsShare" data-v="${s}" aria-pressed="${LST.share === s}">${s * 100}%</button>`).join('')}</div>
+      <label>Hourly price</label>
+      <div class="seg" style="margin-bottom:16px">${[[0.8,'Fill fast'],[1,'Suggested'],[1.3,'Premium']].map(([m, t]) => `<button class="chip" data-act="lsMult" data-v="${m}" aria-pressed="${LST.mult === m}">${t}</button>`).join('')}</div>
+      <div class="rows" style="border:1px solid var(--rule);margin-bottom:16px">
+        ${kv('Price per hour', fmtTok(p) + ' $FRACTURE')}
+        ${kv('Per day / week', `${fmtTok(p * 24 * 0.9)} / ${fmtTok(p * 168 * 0.75)}`)}
+        ${kv('You receive', '90% of each payment')}
+        ${kv('Burned', '10% of each payment')}
+      </div>
+      <p class="small" style="margin:0 0 16px">The suggested price is based on this rig’s recent revenue. Demand isn’t guaranteed: a rig can sit unrented.</p>
+      <button class="btn lime wide" data-act="listSave" data-id="${e.id}" data-p="${p}">${e.list ? 'Update listing' : 'List rig #' + e.id}</button>
+    </div></section>`);
+}
+
+function flywheel(){
+  const L = ['More rigs minted','More rigs rented','More coins launched','More creator fees','More demand for rigs','More $FRACTURE spent','More $FRACTURE burned'];
+  const cx = 380, cy = 180, rx = 290, ry = 135, n = L.length;
+  let s = `<svg viewBox="0 0 760 360" role="img" aria-label="The $FRACTURE flywheel"><ellipse class="ring" cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}"/>`;
+  L.forEach((_, i) => { const a = (i + 0.5) / n * 2 * Math.PI - Math.PI / 2, x = cx + rx * Math.cos(a), y = cy + ry * Math.sin(a), rot = Math.atan2(ry * Math.cos(a), -rx * Math.sin(a)) * 180 / Math.PI; s += `<path class="arr" d="M -7 -6 L 7 0 L -7 6 Z" transform="translate(${x.toFixed(1)} ${y.toFixed(1)}) rotate(${rot.toFixed(1)})"/>`; });
+  L.forEach((t, i) => { const a = i / n * 2 * Math.PI - Math.PI / 2, x = cx + rx * Math.cos(a), y = cy + ry * Math.sin(a); s += `<g class="node${i === 6 ? ' hot' : ''}"><rect x="${(x - 92).toFixed(1)}" y="${(y - 19).toFixed(1)}" width="184" height="38"/><text x="${x.toFixed(1)}" y="${(y + 5).toFixed(1)}" text-anchor="middle">${t}</text></g>`; });
+  return s + `</svg><ol>${L.map(t => `<li>${t}</li>`).join('')}</ol>`;
+}
+function vHow(){
+  const sq = Array.from({ length: 100 }, (_, i) => `<i class="${i < 60 ? 'sq-a' : i < 85 ? 'sq-b' : 'sq-c'}"></i>`).join('');
+  const tank = `<svg viewBox="0 0 12 30" shape-rendering="crispEdges" aria-hidden="true"><rect x="0" y="0" width="12" height="30" class="st"/><rect x="1" y="1" width="10" height="28" class="sea"/><rect x="1" y="11" width="10" height="18" class="g"/>${[5,10,15,20,25].map(y => `<rect x="1" y="${y}" width="3" height="1" class="st"/>`).join('')}</svg>`;
+  return `<section class="panel"><h2 class="ph">${ICO.how} How it works <small>rigs launch coins and collect a share of their fees</small></h2>${stepsHTML()}</section>
+  <section class="panel mt"><h2 class="ph">${ICO.coin} Where every creator fee goes <small>100 squares, one per percent</small></h2>
+    <div class="split"><div class="squares" aria-hidden="true">${sq}</div></div>
+    <div class="splitkeys">
+      <div><span class="k"><i class="sq-a"></i>Operator</span><b>60%</b><p>Whoever runs the rig. When it’s rented, owner and renter split this at the listed share.</p></div>
+      <div><span class="k"><i class="sq-b"></i>Buy and burn</span><b>25%</b><p>Buys $FRACTURE on the market and burns it.</p></div>
+      <div><span class="k"><i class="sq-c"></i>Operations</span><b>15%</b><p>Pays for the AI agents, model calls and the keeper.</p></div>
+    </div>
+  </section>
+  <div class="two mt">
+    <section class="panel"><h2 class="ph">${ICO.barrel} Oil reserves <small>every rig runs dry</small></h2>
+      <div class="tank">${tank}<div><p>Each rig holds ${CFG.RES_MAX} barrels. Every coin it launches uses one. When the tank is empty, it stops drilling.</p>
+      <p>Refill at ${fmtTok(CFG.BARREL)} $FRACTURE a barrel, or survey a further field for fresh reserves. Every token spent is burned.</p></div></div>
+    </section>
+    <section class="panel"><h2 class="ph">${ICO.market} Rig rentals <small>passive income for owners</small></h2>
+      <div class="pad"><p class="small" style="margin:0 0 10px;font-size:14.5px">Owners list rigs by the hour, day or week for $FRACTURE and choose how much of the operator share the renter keeps. 90% of each payment goes to the owner and 10% is burned.</p>
+      <p class="small" style="margin:0;font-size:14.5px">The best-earning rigs go to rental auctions, where the top bid wins a 24-hour rental. Payments and fee shares settle automatically when a rental ends.</p></div>
+    </section>
+  </div>
+  <section class="panel mt"><h2 class="ph">${ICO.sonar} The flywheel <small>why rentals and upgrades feed demand</small></h2><div class="fly">${flywheel()}</div></section>
+  <div class="two mt">
+    <section class="panel"><h2 class="ph">${ICO.field} Oil fields</h2>
+      <div class="tw"><table><thead><tr><th>Field</th><th>Finds</th><th class="r">Survey</th><th class="r">Spread</th></tr></thead><tbody>
+      ${FIELDS.map(d => `<tr><td><b>${d.name}</b></td><td>${d.finds}</td><td class="r">${d.unlock ? fmtTok(d.unlock) : 'Free'}</td><td class="r">${d.spread}</td></tr>`).join('')}
+      </tbody></table></div>
+      <p class="note" style="margin:0 18px 18px">Further fields need more $FRACTURE and carry no guarantee of greater profit.</p>
+    </section>
+    <section class="panel"><h2 class="ph">${ICO.key} Upgrades <small>paid in $FRACTURE, all burned</small></h2>
+      <div class="tw"><table><thead><tr><th>Upgrade</th><th>Effect</th><th class="r">Levels</th><th class="r">Cost</th></tr></thead><tbody>
+      <tr><td><b>Drilling capacity</b></td><td>+1 well live at once</td><td class="r">3</td><td class="r">20k × level</td></tr>
+      <tr><td><b>Launch frequency</b></td><td>+25% strike rate</td><td class="r">5</td><td class="r">5k × level</td></tr>
+      <tr><td><b>Automation</b></td><td>Level 2 refills its own reserves, level 3 sends owner fees to your wallet</td><td class="r">3</td><td class="r">15k × level</td></tr>
+      </tbody></table></div>
+    </section>
+  </div>`;
+}
+
+const DOCS = [
+  ['overview','Overview', () => `<p>Fracture is a Solana launchpad where the launcher is a machine. Each <strong>rig</strong> is an NFT. It drills one oil field for narratives, launches coins on pump.fun with itself as the creator, and pays 60% of those coins’ creator fees to whoever is operating it.</p>
+    <p>There will only ever be 777 rigs. You can run one, rent yours out to someone else, or rent someone else’s. Rigs trade on Tensor and Magic Eden, and unclaimed fees travel with the NFT.</p>`],
+  ['minting','Minting', () => `<p>Choose a field and pay the mint price in SOL. It rises evenly from 0.25 SOL for #1 to 1.5 SOL for #777: <code>0.25 + 1.25 × (n − 1) / 776</code>. Half buys and burns $FRACTURE, half funds operations. Surveying a field beyond the shelf costs $FRACTURE, which is burned.</p>
+    <div class="tw"><table><thead><tr><th>Rig</th><th class="r">Mint price</th></tr></thead><tbody>${[1,200,400,600,777].map(n => `<tr><td>#${n}</td><td class="r">${mintPrice(n).toFixed(3)} SOL</td></tr>`).join('')}</tbody></table></div>`],
+  ['fields','Oil fields', () => `<p>Every rig drills one field. Further fields strike less often and their coins vary far more: most earn little, a rare one earns a lot. Across the whole fleet the average is about the same in every field.</p>
+    <div class="tw"><table><thead><tr><th>Field</th><th>What it reads</th><th class="r">Survey</th></tr></thead><tbody>${FIELDS.map(d => `<tr><td><strong>${d.name}</strong></td><td>${d.blurb}</td><td class="r">${d.unlock ? fmtTok(d.unlock) : 'Free'}</td></tr>`).join('')}</tbody></table></div>`],
+  ['drilling','Drilling', () => `<p>An AI agent scans its field every few minutes. A find becomes a coin name, ticker, image and description, and must pass the drilling rules before the rig launches it.</p>
+    <h4>Drilling rules</h4>
+    <ul><li>No real people’s names or likeness, and no implied endorsement.</li><li>No existing brands, and no ticker that is already live on pump.fun.</li><li>No promises of returns in the name, image or description.</li><li>Every description says which rig launched the coin.</li></ul>
+    <p>Set a rig to <strong>approve each strike</strong> and every find waits 30 minutes for the operator to drill or discard it.</p>`],
+  ['reserves','Oil reserves', () => `<p>Each rig holds ${CFG.RES_MAX} barrels and every launch uses one. An empty rig stops drilling until its reserves are refilled at ${fmtTok(CFG.BARREL)} $FRACTURE a barrel, or until it surveys a further field, which comes with a full tank. Both are burned. At automation level 2 a rig refills itself from the owner’s wallet.</p>`],
+  ['fees','Fees', () => `<p>pump.fun pays each coin’s creator fees to its rig’s address, on the bonding curve and after graduation to PumpSwap. A keeper collects them and the program splits them:</p>
+    <div class="tw"><table><thead><tr><th>To</th><th class="r">Share</th></tr></thead><tbody><tr><td>The rig’s operator</td><td class="r">60%</td></tr><tr><td>$FRACTURE buy and burn</td><td class="r">25%</td></tr><tr><td>Operations</td><td class="r">15%</td></tr></tbody></table></div>
+    <p>When a rig is rented, the operator share is split between renter and owner at the share set in the listing.</p>`],
+  ['rentals','Rental market', () => `<p>Owners list rigs for rent by the hour, day or week, priced in $FRACTURE. A day is 10% cheaper per hour and a week 25% cheaper. The owner also sets how much of the operator share the renter keeps: 50%, 60%, 70% or 80%.</p>
+    <p>Each rental payment is settled by the program the moment the rental starts: 90% to the owner, 10% burned. When the rental ends, the renter’s share of fees settles to their wallet automatically and the rig returns to its owner.</p>
+    <h4>Rental auctions</h4>
+    <p>The rigs with the highest recent revenue go to auction for a 24-hour rental with a 70% renter share. Each bid must beat the last by 10%. Outbid bidders are refunded at once.</p>`],
+  ['upgrades','Upgrades', () => `<p><strong>Drilling capacity</strong> sets how many of a rig’s wells can be live at once, up to three. <strong>Launch frequency</strong> raises the strike rate by 25% a level, up to five. <strong>Automation</strong> lets a rig refill its own reserves at level 2 and send owner fees straight to the wallet at level 3. All upgrades are paid in $FRACTURE and burned.</p>`],
+  ['token','$FRACTURE', () => `<p>$FRACTURE is the pad’s token, launched on pump.fun. It pays for rentals, upgrades, reserves and surveys. 25% of every coin’s creator fees, half of every mint and 10% of every rental payment buy it or burn it.</p>
+    <p>That is the flywheel: more rigs and rentals launch more coins, which earn more fees, which raise demand for rigs and spend more $FRACTURE.</p>`],
+  ['faq','FAQ', () => [
+      ['Who is the creator of the coins?','The rig. Its address is set as the coin’s creator on pump.fun, and the fee split is locked in the same transaction.'],
+      ['Do I need to own a rig to drill?','No. Rent one from the market or win a rental auction, and you operate it for the rental period.'],
+      ['What happens when my rig runs dry?','It stops launching. Refill the reserves, survey a further field, or turn on automation so it refills itself.'],
+      ['Does a further field earn more?','Not on average. It strikes less often with a wider spread, so some frontier rigs do very well and most do worse.'],
+      ['What happens when I sell my rig?','Its journal of wells, any unclaimed fees and any active listing go with it. Claim before you list it for sale.']
+    ].map(([q, a]) => `<details><summary>${q}</summary><p>${a}</p></details>`).join('')],
+  ['risks','Risks', () => `<ul><li>Most coins on pump.fun stop trading within days. A rig whose wells are dry earns nothing.</li>
+    <li>Rental demand isn’t guaranteed. A listed rig can sit unrented, and a rented rig can earn less than the rent paid.</li>
+    <li>AI-picked narratives are guesses. Fields, upgrades and reserves don’t guarantee profit.</li>
+    <li>A rig’s market price can fall far below what was paid to mint it.</li>
+    <li>pump.fun can change its fee rates or creator fee program at any time.</li>
+    <li>Smart contracts and autonomous agents can have bugs even after testing.</li></ul>
+    <p class="small">Rigs, rentals, $FRACTURE and every coin launched here can go to zero. Nothing on this site is financial advice; only put in what you can afford to lose.</p>`]
+];
+function vDocs(){
+  return `<div class="docs"><nav class="panel toc" aria-label="Docs contents"><h2 class="ph">${ICO.docs} Docs <small>contents</small></h2>
+    <ol>${DOCS.map((d, i) => `<li><button data-act="docjump" data-id="${d[0]}"><span>${pad2(i + 1)}</span>${d[1]}</button></li>`).join('')}</ol></nav>
+    <div class="col">${DOCS.map(d => `<section class="panel doc" id="doc-${d[0]}"><h2 class="ph">${d[1]}</h2><div class="body">${d[2]()}</div></section>`).join('')}</div></div>`;
+}
+
+function rigModal(id){
+  const e = rigById.get(+id); if (!e) return;
+  const coins = e.j.map(i => coinById.get(i)).filter(Boolean);
+  modal(`<section class="panel modal wide" role="dialog" aria-modal="true" aria-labelledby="rt">
+    <h2 class="ph" id="rt">${MINI} Rig #${e.id} <small>${FIELDS[e.field].name}${isMine(e) ? ', yours' : isRenting(e) ? ', rented by you' : ''}</small><button class="x" data-act="close" aria-label="Close">×</button></h2>
+    <div class="youget"><div class="frame" style="width:150px">${rigSVG(e)}</div>
+      <div class="stats" style="flex:1">
+        <div><label>Owner</label><b>${isMine(e) ? 'You' : short(e.owner)}</b></div>
+        <div><label>Status</label><b>${e.rent ? 'Rented, ' + left(e.rent.until) + ' left' : e.list ? 'For rent' : 'Run by owner'}</b></div>
+        <div><label>Wells drilled</label><b>${e.count}</b></div>
+        <div><label>Operator revenue</label><b>${fmtSol(e.life)} SOL</b></div>
+        <div><label>Reserves</label><b>${e.res} / ${CFG.RES_MAX} barrels</b></div>
+        <div><label>Upgrades</label><b>Capacity ${e.cap}, frequency ${e.freq}, automation ${e.auto}</b></div>
+      </div></div>
+    <h2 class="ph" style="border-top:1px solid var(--rule)">${ICO.docs} Journal <small>recent wells</small></h2>
+    ${coins.length ? `<div class="tw"><table><thead><tr><th>Coin</th><th>Signal</th><th>Status</th><th class="r">Fees</th></tr></thead><tbody>
+      ${coins.slice(0, 40).map(c => `<tr><td><b>$${esc(c.tick)}</b></td><td><span class="small">${esc(c.sig)}</span></td><td>${c.grad ? 'Graduated' : c.alive ? 'Live' : 'Depleted'}</td><td class="r">${fmtSol(c.fees)} SOL</td></tr>`).join('')}
+    </tbody></table></div>` : `<div class="empty">${MINI}<span>No wells yet. It’s surveying.</span></div>`}
+  </section>`);
+}
+
+/* ---------- render ---------- */
+let lastVer = -1, lastTab = '', lastRender = 0;
+const VIEWS = { field: vField, mint: vMint, market: vMarket, fleet: vFleet, rigs: vRigs, how: vHow, docs: vDocs };
+function render(force){
+  const now = performance.now();
+  const dynamic = !(tab === 'how' || tab === 'docs');
+  if (!force && tab === lastTab && (!dynamic || S.ver === lastVer || now - lastRender < 1500)) return;
+  lastVer = S.ver; lastTab = tab; lastRender = now;
+  const y = window.scrollY;
+  $('#view').innerHTML = VIEWS[tab]();
+  window.scrollTo(0, y);
+}
+function paintTabs(){ $('#tabs').innerHTML = TABS.map(([k, label, icon], i) => `<a href="#${k}"${tab === k ? ' aria-current="page"' : ''}>${icon}<span>${label}</span><em>${i + 1}</em></a>`).join(''); }
+function updateLive(){
+  document.querySelectorAll('[data-k]').forEach(el => { const [k, a] = el.dataset.k.split(':'); const f = LIVE[k]; if (!f) return; const v = f(a); if (el.textContent !== v) el.textContent = v; });
+}
+function route(){ const h = location.hash.replace('#', ''); tab = VIEWS[h] ? h : 'field'; paintTabs(); render(true); updateLive(); }
+
+/* ---------- overlays ---------- */
+let lastFocus = null;
+function modal(html){ if (!$('#overlay').innerHTML) lastFocus = document.activeElement; $('#overlay').innerHTML = `<div class="scrim" data-act="scrim">${html}</div>`; const f = $('#overlay').querySelector('[aria-pressed="true"],button,a'); f && f.focus(); }
+function closeModal(){ $('#overlay').innerHTML = ''; LST.id = 0; lastFocus && lastFocus.focus && lastFocus.focus(); }
+function toast(msg){ const t = document.createElement('div'); t.className = 'toast'; t.textContent = msg; const box = $('#toasts'); box.appendChild(t); while (box.children.length > 3) box.firstChild.remove(); setTimeout(() => t.remove(), 3800); }
+
+/* ---------- actions ---------- */
+function doMint(){
+  const n = S.rigs.length + 1; if (!W.addr || n > CFG.SUPPLY) return;
+  const fee = mintPrice(n), fd = FIELDS[D.field];
+  if (S.wal.sol < fee || S.wal.fra < fd.unlock) return;
+  S.wal.sol -= fee; S.wal.fra -= fd.unlock;
+  S.burnSol += fee * 0.5; S.burned += fee * 0.5 / price() + fd.unlock; S.ops += fee * 0.5;
+  const e = { id: n, owner: W.addr, field: D.field, cap: 1, freq: 1, auto: 1, res: CFG.RES_MAX, live: 0, count: 0, unclaimed: 0, rentUn: 0, own: 0, life: 0, rv: 0, j: [], user: true, mode: 'auto', list: null, rent: null, t: S.t };
+  S.rigs.push(e); rigById.set(e.id, e);
+  feedPush({ k: 'mint', rig: e.id, f: e.field }); S.ver++; save();
+  toast(`Rig #${n} minted. It starts surveying now.`);
+  location.hash = '#rigs';
+}
+function claimOwner(e){ if (!isMine(e) || e.unclaimed <= 0) return 0; const v = e.unclaimed; S.wal.sol += v; e.unclaimed = 0; return v; }
+function claimRent(e){ if (!isRenting(e) || e.rentUn <= 0) return 0; const v = e.rentUn; S.wal.sol += v; e.rentUn = 0; return v; }
+const after = () => { S.ver++; render(true); updateLive(); };
+
+document.addEventListener('click', async ev => {
+  const go = ev.target.closest('[data-go]');
+  if (go) { if ($('#overlay').innerHTML) closeModal(); location.hash = '#' + go.dataset.go; return; }
+  const a = ev.target.closest('[data-act]');
+  if (!a) { if (!ev.target.closest('.walletcell')) $('#walletMenu').hidden = true; return; }
+  const act = a.dataset.act;
+  if (act === 'scrim') { if (ev.target === a) closeModal(); return; }
+  switch (act) {
+    case 'close': closeModal(); break;
+    case 'wallet':
+      if (W.addr && a.id === 'walletBtn') { const m = $('#walletMenu'); paintWallet(); m.hidden = !m.hidden; }
+      else openWalletModal();
+      break;
+    case 'pickWallet': {
+      const entry = W.list[+a.dataset.i];
+      a.disabled = true; const em = a.querySelector('em'); if (em) em.textContent = 'Approve in wallet…';
+      try { await connectEntry(entry, false); closeModal(); toast(`Connected ${short(W.addr)}`); }
+      catch (err) { a.disabled = false; if (em) em.textContent = 'Detected'; toast(err && err.message && /reject|denied|cancel/i.test(err.message) ? 'Connection request was declined in the wallet.' : 'Couldn’t connect. Unlock the wallet and try again.'); }
+      break; }
+    case 'guestWallet': setWallet(randAddr(Math.random), null); closeModal(); toast('Connected as guest'); break;
+    case 'disconnect': clearWallet(); toast('Wallet disconnected'); break;
+    case 'copyAddr': try { await navigator.clipboard.writeText(W.addr); toast('Address copied'); } catch (e) { toast(W.addr); } break;
+    case 'pickField': D.field = +a.dataset.i; render(true); break;
+    case 'mint': doMint(); break;
+    case 'q': Q[a.dataset.key] = a.dataset.val; Q.limit = 72; render(true); break;
+    case 'm': M[a.dataset.key] = a.dataset.key === 'dur' ? +a.dataset.val : a.dataset.val; render(true); break;
+    case 'more': Q.limit += 72; render(true); break;
+    case 'openRig': rigModal(a.dataset.id); break;
+    case 'claim': { const v = claimOwner(rigById.get(+a.dataset.id)); toast(v > 0 ? `Claimed ${fmtSol(v)} SOL` : 'Nothing to claim yet'); after(); break; }
+    case 'claimAll': { const v = myRigs().reduce((s, e) => s + claimOwner(e), 0) + myRentals().reduce((s, e) => s + claimRent(e), 0); toast(v > 0 ? `Claimed ${fmtSol(v)} SOL` : 'Nothing to claim yet'); after(); break; }
+    case 'buyFra': if (S.wal.sol >= 1) { const t = 1 / price(); S.wal.sol -= 1; S.wal.fra += t; toast(`Swapped 1 SOL for ${fmtTok(t)} $FRACTURE`); after(); } break;
+    case 'upgrade': { const e = rigById.get(+a.dataset.id), k = a.dataset.k; if (!isMine(e) || e[k] >= UP[k].max) break; const c = UP[k].cost(e[k]); if (S.wal.fra < c) break; S.wal.fra -= c; S.burned += c; e[k]++; toast(`${UP[k].name} is now level ${e[k]}. ${fmtTok(c)} $FRACTURE burned.`); after(); break; }
+    case 'refill': { const e = rigById.get(+a.dataset.id); if (!isMine(e) && !isRenting(e)) break; const c = (CFG.RES_MAX - e.res) * CFG.BARREL; if (!c || S.wal.fra < c) break; S.wal.fra -= c; S.burned += c; e.res = CFG.RES_MAX; toast(`Rig #${e.id} refilled. ${fmtTok(c)} $FRACTURE burned.`); after(); break; }
+    case 'explore': { const e = rigById.get(+a.dataset.id); if (!isMine(e) || e.field >= 2) break; const c = FIELDS[e.field + 1].unlock - FIELDS[e.field].unlock; if (S.wal.fra < c) break; S.wal.fra -= c; S.burned += c; e.field++; e.res = CFG.RES_MAX; toast(`Rig #${e.id} moved to ${FIELDS[e.field].name.toLowerCase()} with fresh reserves. ${fmtTok(c)} $FRACTURE burned.`); after(); break; }
+    case 'toggleMode': { const e = rigById.get(+a.dataset.id); if (!isMine(e) && !isRenting(e)) break; e.mode = e.mode === 'auto' ? 'review' : 'auto'; render(true); break; }
+    case 'approve': { const q = S.queue.find(x => x.q === +a.dataset.q); if (!q) break; const e = rigById.get(q.rig); if (e.live >= e.cap || e.res <= 0) break; S.queue = S.queue.filter(x => x !== q); strike(e, q.n); render(true); break; }
+    case 'discard': S.queue = S.queue.filter(x => x.q !== +a.dataset.q); after(); break;
+    case 'listOpen': LST.id = 0; listModal(a.dataset.id); break;
+    case 'lsShare': LST.share = +a.dataset.v; listModal(LST.id); break;
+    case 'lsMult': LST.mult = +a.dataset.v; listModal(LST.id); break;
+    case 'listSave': { const e = rigById.get(+a.dataset.id); if (!isMine(e)) break; e.list = { share: LST.share, price: +a.dataset.p, k: LST.mult }; closeModal(); toast(`Rig #${e.id} listed at ${fmtTok(e.list.price)} $FRACTURE an hour`); after(); break; }
+    case 'unlist': { const e = rigById.get(+a.dataset.id); if (!isMine(e)) break; e.list = null; toast(`Rig #${e.id} unlisted`); after(); break; }
+    case 'rent': {
+      const e = rigById.get(+a.dataset.id), d = DURS[M.dur]; if (!W.addr || !e || !e.list || e.rent || isMine(e) || inAuction(e)) break;
+      const cost = e.list.price * d.h * (1 - d.off); if (S.wal.fra < cost) break;
+      S.wal.fra -= cost; startRent(e, W.addr, true, d.h, cost, e.list.share);
+      toast(`You’re running rig #${e.id} for ${d.name}. You keep ${Math.round(e.list.share * 100)}% of the operator share.`); location.hash = '#rigs'; after(); break; }
+    case 'bid': {
+      const au = S.auc.find(x => x.a === +a.dataset.a); if (!au || !W.addr || au.bidder === 'you') break;
+      const next = au.bidder ? r50(au.bid * 1.1) : au.bid; if (S.wal.fra < next) break;
+      S.wal.fra -= next; au.bid = next; au.bidder = 'you'; toast(`You bid ${fmtTok(next)} $FRACTURE on rig #${au.rig}`); after(); break; }
+    case 'docjump': { const el = document.getElementById('doc-' + a.dataset.id); el && el.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' }); break; }
+  }
+  if (act !== 'wallet' && !a.closest('#walletMenu')) $('#walletMenu').hidden = true;
+});
+document.addEventListener('keydown', e => { if (e.key === 'Escape') { if ($('#overlay').innerHTML) closeModal(); $('#walletMenu').hidden = true; } });
+window.addEventListener('hashchange', route);
+
+/* ---------- boot ---------- */
+load();
+S.speed = 60;
+route();
+paintWallet();
+setTimeout(eagerConnect, 500);
+let lastTick = performance.now(), lastSave = 0;
+setInterval(() => {
+  const now = performance.now(), dt = Math.min(2, (now - lastTick) / 1000); lastTick = now;
+  if (S.speed > 0) advance(S.speed * dt / 60);
+  updateLive(); render(false);
+  if (now - lastSave > 5000) { save(); lastSave = now; }
+}, 250);
+window.addEventListener('pagehide', save);
+</script>
+</body>
+</html>
